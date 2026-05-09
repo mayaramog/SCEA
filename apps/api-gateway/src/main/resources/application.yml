@@ -6,21 +6,23 @@ spring:
     name: api-gateway
   cloud:
     gateway:
-      routes:
-        - id: protocolos-api
-          uri: lb://protocolos-api
-          predicates:
-            - Path=/api/v1/protocolos/**, /api/v1/auth/**
-        - id: atores-api
-          uri: lb://atores-api
-          predicates:
-            - Path=/api/v1/docentes/**
-        - id: notification-worker
-          uri: lb://notification-worker
-          predicates:
-            - Path=/api/v1/certificados/**
+      server:
+        webflux:
+          routes:
+            - id: protocolos-api
+              uri: lb://protocolos-api
+              predicates:
+                - Path=/api/v1/protocolos/**, /api/v1/auth/**
+            - id: atores-api
+              uri: lb://atores-api
+              predicates:
+                - Path=/api/v1/docentes/**
+            - id: notification-worker
+              uri: lb://notification-worker
+              predicates:
+                - Path=/api/v1/certificados/**
 
 eureka:
   client:
     serviceUrl:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: http://${EUREKA_HOST:localhost}:8761/eureka/

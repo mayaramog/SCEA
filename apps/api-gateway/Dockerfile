@@ -1,7 +1,14 @@
 FROM eclipse-temurin:25-jdk AS base
 WORKDIR /app
-COPY . .
-RUN ./mvnw clean package -DskipTests
+# copy only necessary files to build the api-gateway module
+# copy wrapper and project files
+COPY mvnw mvnw.cmd /app/
+COPY .mvn /app/.mvn
+COPY pom.xml /app/pom.xml
+COPY apps/api-gateway/pom.xml /app/apps/api-gateway/pom.xml
+COPY apps/api-gateway /app/apps/api-gateway
+# build only the api-gateway module to speed up and avoid resolving all modules
+RUN ./mvnw -f apps/api-gateway/pom.xml clean package -DskipTests
 
 FROM eclipse-temurin:25-jre
 WORKDIR /app
