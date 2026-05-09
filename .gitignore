@@ -33,3 +33,6 @@ Thumbs.db
 /scea/src/main/java/br/edu/scea/SceaApplication.java
 /scea/src/test/java/br/edu/scea/SceaApplicationTests.java
 /update_packages.py
+frontend/node_modules/
+frontend/dist/
+SCEA-ts-antigo/

@@ -24,11 +24,7 @@
 
     <modules>
         <module>packages/shared-contracts</module>
-        <module>apps/protocolos-api</module>
-        <module>apps/atores-api</module>
-        <module>apps/notification-worker</module>
         <module>apps/eureka-server</module>
-        <module>apps/api-gateway</module>
         <module>apps/auth-api</module>
     </modules>
 
