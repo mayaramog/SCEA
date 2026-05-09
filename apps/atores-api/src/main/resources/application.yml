@@ -1,0 +1,28 @@
+spring:
+  application:
+    name: atores-api
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:5432/scea?currentSchema=atores
+    username: postgres
+    password: "1234"
+    driver-class-name: org.postgresql.Driver
+  flyway:
+    enabled: true
+    schemas: atores
+    default-schema: atores
+    create-schemas: true
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        default_schema: atores
+        format_sql: true
+
+server:
+  port: 8081
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://${EUREKA_HOST:localhost}:8761/eureka/
