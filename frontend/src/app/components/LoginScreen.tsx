@@ -16,7 +16,6 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
   const usuarios: User[] = [
     { matricula: '1001', nome: 'Dr. João Silva', role: 'docente', titulacao: 'doutor' },
     { matricula: '1002', nome: 'Profa. Maria Santos', role: 'docente', titulacao: 'titular' },
-    { matricula: '1003', nome: 'Dr. Pedro Almeida', role: 'docente', titulacao: 'doutor' },
     { matricula: '2001', nome: 'Ana Costa', role: 'secretaria' },
     { matricula: '3001', nome: 'Prof. Carlos Oliveira', role: 'presidente', titulacao: 'livre-docente' },
   ];
