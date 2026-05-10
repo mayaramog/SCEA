@@ -25,15 +25,18 @@ public class ProtocoloService {
     private final ProtocoloDesignacaoParecerRepository designacaoRepository;
     private final ProtocoloParecerRepository parecerRepository;
     private final ProtocoloDecisaoRepository decisaoRepository;
+    private final CalendarioService calendarioService;
 
     public ProtocoloService(ProtocoloRepository protocoloRepository,
                             ProtocoloDesignacaoParecerRepository designacaoRepository,
                             ProtocoloParecerRepository parecerRepository,
-                            ProtocoloDecisaoRepository decisaoRepository) {
+                            ProtocoloDecisaoRepository decisaoRepository,
+                            CalendarioService calendarioService) {
         this.protocoloRepository = protocoloRepository;
         this.designacaoRepository = designacaoRepository;
         this.parecerRepository = parecerRepository;
         this.decisaoRepository = decisaoRepository;
+        this.calendarioService = calendarioService;
     }
 
     public List<ProtocoloEntity> listar() {
@@ -57,8 +60,20 @@ public class ProtocoloService {
 
     @Transactional
     public UUID submeter(SubmissaoProtocoloRequest request) {
+        // Validação de datas básicas
+        if (request.dataInicioPlanejada().isAfter(request.dataTerminoPlanejada())) {
+            throw new IllegalArgumentException("A data de início não pode ser após a data de término.");
+        }
+        if (request.dataInicioPlanejada().isBefore(LocalDate.now())) {
+            throw new IllegalArgumentException("A data de início não pode ser no passado.");
+        }
+
+        // Validação de Dias Úteis e Feriados (Brasil API)
+        calendarioService.validarDiaUtil(request.dataInicioPlanejada(), "Início do experimento");
+        calendarioService.validarDiaUtil(request.dataTerminoPlanejada(), "Término do experimento");
+
         UUID usuarioId = getUsuarioLogadoId();
-        String nomeCompleto = SecurityContextHolder.getContext().getAuthentication().getName();
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
         
         String codigo = "P-" + LocalDate.now().getYear() + "-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
 
@@ -78,7 +93,7 @@ public class ProtocoloService {
         entity.setCriadoEm(OffsetDateTime.now());
         entity.setAtualizadoEm(OffsetDateTime.now());
         entity.setIdUsuarioSubmetedor(usuarioId);
-        entity.setNomePesquisadorResponsavel(nomeCompleto);
+        entity.setNomePesquisadorResponsavel(email);
 
         entity.setAlocacoes(request.alocacoes().stream().map(dto -> {
             AlocacaoBiologicaEntity aloc = new AlocacaoBiologicaEntity();

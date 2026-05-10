@@ -1,23 +1,18 @@
 package br.edu.scea.shared.model.protocolo;
 
 import br.edu.scea.shared.enums.DecisaoParecer;
+import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
 
 public record Parecer(
     UUID id,
-    UUID protocolId,
     UUID pareceristaId,
     String texto,
-    DecisaoParecer decisao
+    DecisaoParecer decisao,
+    Instant dataRegistro
 ) {
-    public Parecer {
-        Objects.requireNonNull(id);
-        Objects.requireNonNull(protocolId);
-        Objects.requireNonNull(pareceristaId);
-        if (texto == null || texto.isBlank()) {
-            throw new IllegalArgumentException("Texto do parecer é obrigatório.");
-        }
-        Objects.requireNonNull(decisao);
+    public Parecer(UUID pareceristaId, String texto, DecisaoParecer decisao, Instant dataRegistro) {
+        this(UUID.randomUUID(), pareceristaId, texto, decisao, dataRegistro);
     }
 }

@@ -1,5 +1,6 @@
 package br.edu.scea.comite.infrastructure.web;
 
+import br.edu.scea.comite.application.service.CalendarioService;
 import br.edu.scea.comite.infrastructure.persistence.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,13 +13,21 @@ import java.util.UUID;
 public class ComiteController {
 
     private final ReuniaoComiteRepository repository;
+    private final CalendarioService calendarioService;
 
-    public ComiteController(ReuniaoComiteRepository repository) {
+    public ComiteController(ReuniaoComiteRepository repository, CalendarioService calendarioService) {
         this.repository = repository;
+        this.calendarioService = calendarioService;
     }
 
     @PostMapping
     public ResponseEntity<ReuniaoComiteEntity> criar(@RequestBody ReuniaoComiteEntity reuniao) {
+        // Validação de Dias Úteis e Feriados
+        if (reuniao.getAgendadaPara() == null) {
+            throw new IllegalArgumentException("A data da reunião é obrigatória.");
+        }
+        calendarioService.validarDiaUtil(reuniao.getAgendadaPara(), "A reunião do comitê");
+
         if (reuniao.getId() == null) reuniao.setId(UUID.randomUUID());
         if (reuniao.getCriadoEm() == null) reuniao.setCriadoEm(OffsetDateTime.now());
         if (reuniao.getEstado() == null) reuniao.setEstado("agendada");
