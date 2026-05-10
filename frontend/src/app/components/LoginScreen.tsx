@@ -1,43 +1,32 @@
 import { useState } from 'react';
-import { User, UserRole, Titulacao } from '../App';
-import { Lock, User as UserIcon, Eye, EyeOff } from 'lucide-react';
+import { User } from '../App';
+import { Lock, Mail, Eye, EyeOff } from 'lucide-react';
+import api from '../utils/api';
 
 interface LoginScreenProps {
   onLogin: (user: User) => void;
 }
 
 export function LoginScreen({ onLogin }: LoginScreenProps) {
-  const [matricula, setMatricula] = useState('');
+  const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  // Usuários simulados para demonstração
-  const usuarios: User[] = [
-    { matricula: '1001', nome: 'Dr. João Silva', role: 'docente', titulacao: 'doutor' },
-    { matricula: '1002', nome: 'Profa. Maria Santos', role: 'docente', titulacao: 'titular' },
-    { matricula: '2001', nome: 'Ana Costa', role: 'secretaria' },
-    { matricula: '3001', nome: 'Prof. Carlos Oliveira', role: 'presidente', titulacao: 'livre-docente' },
-  ];
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
 
-    const usuario = usuarios.find(u => u.matricula === matricula);
-
-    if (!usuario) {
-      setError('Matrícula ou senha inválida');
-      return;
+    try {
+      const { user } = await api.login(email, senha);
+      onLogin(user);
+    } catch (err: any) {
+      setError(err.message || 'Falha na autenticação. Verifique suas credenciais.');
+    } finally {
+      setLoading(false);
     }
-
-    // Simula verificação de senha (senha = matrícula para demo)
-    if (senha !== matricula) {
-      setError('Matrícula ou senha inválida');
-      return;
-    }
-
-    onLogin(usuario);
   };
 
   return (
@@ -62,25 +51,24 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <label
-                  htmlFor="matricula"
+                  htmlFor="email"
                   className="block text-sm font-medium text-slate-700 mb-2"
                 >
-                  Matrícula
+                  E-mail
                 </label>
                 <div className="relative">
-                  <UserIcon
+                  <Mail
                     className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400"
                     aria-hidden="true"
                   />
                   <input
-                    id="matricula"
-                    type="text"
-                    value={matricula}
-                    onChange={(e) => setMatricula(e.target.value)}
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     className="w-full pl-11 pr-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow"
-                    placeholder="Digite sua matrícula"
+                    placeholder="Digite seu e-mail"
                     required
-                    aria-describedby={error ? 'login-error' : undefined}
                     autoComplete="username"
                   />
                 </div>
@@ -106,62 +94,32 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
                     className="w-full pl-11 pr-12 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow"
                     placeholder="Digite sua senha"
                     required
-                    aria-describedby={error ? 'login-error' : undefined}
                     autoComplete="current-password"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded p-1"
-                    aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
                   >
-                    {showPassword ? (
-                      <EyeOff className="w-5 h-5" aria-hidden="true" />
-                    ) : (
-                      <Eye className="w-5 h-5" aria-hidden="true" />
-                    )}
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
               </div>
 
               {error && (
-                <div
-                  id="login-error"
-                  className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm"
-                  role="alert"
-                >
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm" role="alert">
                   <p className="font-medium">{error}</p>
                 </div>
               )}
 
               <button
                 type="submit"
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 shadow-lg hover:shadow-xl"
+                disabled={loading}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 shadow-lg hover:shadow-xl disabled:opacity-50"
               >
-                Entrar no Sistema
+                {loading ? 'Entrando...' : 'Entrar no Sistema'}
               </button>
             </form>
-
-            {/* Demo users info */}
-            <div className="mt-8 pt-6 border-t border-slate-200">
-              <p className="text-xs text-slate-500 mb-3 font-medium">
-                Usuários de demonstração (senha = matrícula):
-              </p>
-              <div className="space-y-2">
-                {usuarios.map((u) => (
-                  <button
-                    key={u.matricula}
-                    onClick={() => {
-                      setMatricula(u.matricula);
-                      setSenha(u.matricula);
-                    }}
-                    className="w-full text-left text-xs px-3 py-2 bg-slate-50 hover:bg-slate-100 rounded border border-slate-200 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <span className="font-medium text-slate-700">{u.matricula}</span> - {u.nome} ({u.role})
-                  </button>
-                ))}
-              </div>
-            </div>
           </div>
         </div>
 

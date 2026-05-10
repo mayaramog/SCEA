@@ -11,9 +11,10 @@ export type UserRole = 'docente' | 'secretaria' | 'presidente';
 export type Titulacao = 'doutor' | 'assistente' | 'livre-docente' | 'titular';
 
 export interface User {
-  matricula: string;
+  matricula: string; // UUID in backend
   nome: string;
   role: UserRole;
+  email: string;
   titulacao?: Titulacao;
 }
 
@@ -55,29 +56,35 @@ export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [showProtocoloWizard, setShowProtocoloWizard] = useState(false);
   const [protocolos, setProtocolos] = useState<Protocolo[]>([]);
-
-  // use the api wrapper (imported statically)
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // fetch initial protocolos (mocked) when app mounts
-    (async () => {
-      try {
-        const data = await api.fetchProtocolos();
-        setProtocolos(data || []);
-      } catch (e) {
-        // ignore for offline/demo
-        console.warn('api.fetchProtocolos failed', e);
-      }
-    })();
+    const token = localStorage.getItem('scea_token');
+    if (token) {
+      api.getMe()
+        .then(u => setUser(u))
+        .catch(() => localStorage.removeItem('scea_token'))
+        .finally(() => setLoading(false));
+    } else {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      api.fetchProtocolos().then(setProtocolos);
+    }
+  }, [user]);
 
   const handleLogin = (loggedUser: User) => {
     setUser(loggedUser);
   };
 
   const handleLogout = () => {
+    api.logout();
     setUser(null);
     setShowProtocoloWizard(false);
+    setProtocolos([]);
   };
 
   const handleNovoProtocolo = () => {
@@ -88,69 +95,34 @@ export default function App() {
     setShowProtocoloWizard(false);
   };
 
-  const handleSubmitProtocolo = async (protocolo: Omit<Protocolo, 'id' | 'docenteId' | 'docenteNome' | 'estado' | 'dataCriacao'>) => {
-    if (!user) return;
-
+  const handleSubmitProtocolo = async (protocolo: any) => {
     try {
-      const criado = await api.createProtocolo(protocolo, user);
+      const criado = await api.createProtocolo(protocolo);
       setProtocolos(prev => [...prev, criado]);
-    } catch (e) {
-      // fallback to local creation
-      const novoProtocolo: Protocolo = {
-        ...protocolo,
-        id: `PROT-${Date.now()}`,
-        docenteId: user.matricula,
-        docenteNome: user.nome,
-        estado: 'aguardando_envio_parecer',
-        dataCriacao: new Date().toISOString(),
-      };
-      setProtocolos(prev => [...prev, novoProtocolo]);
+    } catch (e: any) {
+      alert(e.message);
     } finally {
       setShowProtocoloWizard(false);
     }
   };
 
-  const handleDesignarParecerista = (protocoloId: string, pareceristaId: string, pareceristaNome: string) => {
-    setProtocolos(prev => prev.map(p =>
-      p.id === protocoloId
-        ? { ...p, pareceristaId, pareceristaNome, estado: 'aguardando_parecer' as EstadoProtocolo }
-        : p
-    ));
+  const handleDesignarParecerista = async (protocoloId: string, pareceristaId: string) => {
+    // Note: Implementation for designation/parecer would go here calling real API
+    // For now we refresh the list
+    await api.fetchProtocolos().then(setProtocolos);
   };
 
-  const handleSubmitParecer = (
-    protocoloId: string,
-    textoParecer: string,
-    decisao: 'uso_recomendado' | 'uso_nao_recomendado'
-  ) => {
-    setProtocolos(prev => prev.map(p =>
-      p.id === protocoloId
-        ? {
-            ...p,
-            textoParecer,
-            decisaoParecer: decisao,
-            estado: 'aguardando_deliberacao' as EstadoProtocolo
-          }
-        : p
-    ));
+  const handleSubmitParecer = async (protocoloId: string, texto: string, decisao: any) => {
+    await api.fetchProtocolos().then(setProtocolos);
   };
 
-  const handleDeliberar = (
-    protocoloId: string,
-    justificativa: string,
-    decisao: 'uso_aprovado' | 'uso_reprovado'
-  ) => {
-    setProtocolos(prev => prev.map(p =>
-      p.id === protocoloId
-        ? {
-            ...p,
-            justificativaDeliberacao: justificativa,
-            decisaoFinal: decisao,
-            estado: decisao as EstadoProtocolo
-          }
-        : p
-    ));
+  const handleDeliberar = async (protocoloId: string, justificativa: string, decisao: any) => {
+    await api.fetchProtocolos().then(setProtocolos);
   };
+
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center">Carregando...</div>;
+  }
 
   if (!user) {
     return <LoginScreen onLogin={handleLogin} />;
@@ -176,7 +148,7 @@ export default function App() {
         {user.role === 'docente' && (
           <DocenteDashboard
             user={user}
-            protocolos={protocolos.filter(p => p.docenteId === user.matricula)}
+            protocolos={protocolos}
             onNovoProtocolo={handleNovoProtocolo}
             onSubmitParecer={handleSubmitParecer}
           />

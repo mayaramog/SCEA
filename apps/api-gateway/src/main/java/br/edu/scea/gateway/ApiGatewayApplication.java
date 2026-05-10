@@ -16,6 +16,20 @@ public class ApiGatewayApplication {
     }
 
     @Bean
+    public org.springframework.web.cors.reactive.CorsWebFilter corsFilter() {
+        org.springframework.web.cors.CorsConfiguration config = new org.springframework.web.cors.CorsConfiguration();
+        config.setAllowCredentials(false);
+        config.addAllowedOrigin("*");
+        config.addAllowedHeader("*");
+        config.addAllowedMethod("*");
+
+        org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource source = new org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+
+        return new org.springframework.web.cors.reactive.CorsWebFilter(source);
+    }
+
+    @Bean
     public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
         return builder.routes()
                 .route("auth-api", r -> r.path("/auth/**").uri("lb://AUTH-API"))

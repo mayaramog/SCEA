@@ -1,20 +1,24 @@
 services:
   db:
     image: postgres:17
+    container_name: scea-db
     environment:
       POSTGRES_DB: scea
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: '1234'
     ports:
       - "5432:5432"
+    volumes:
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
+      test: ["CMD-SHELL", "pg_isready -U postgres -d scea"]
+      interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10
 
   rabbitmq:
     image: rabbitmq:4-management
+    container_name: scea-rabbitmq
     ports:
       - "5672:5672"
       - "15672:15672"
@@ -27,8 +31,10 @@ services:
   eureka-server:
     build:
       context: .
+      dockerfile: Dockerfile
       args:
-        JAR_FILE: apps/eureka-server/target/*.jar
+        JAR_FILE: apps/eureka-server/target/eureka-server-1.0.0-SNAPSHOT.jar
+    container_name: scea-eureka
     ports:
       - "8761:8761"
     environment:
@@ -37,8 +43,10 @@ services:
   auth-api:
     build:
       context: .
+      dockerfile: Dockerfile
       args:
-        JAR_FILE: apps/auth-api/target/*.jar
+        JAR_FILE: apps/auth-api/target/auth-api-1.0.0-SNAPSHOT.jar
+    container_name: scea-auth
     ports:
       - "8081:8081"
     environment:
@@ -51,8 +59,10 @@ services:
   protocolos-api:
     build:
       context: .
+      dockerfile: Dockerfile
       args:
-        JAR_FILE: apps/protocolos-api/target/*.jar
+        JAR_FILE: apps/protocolos-api/target/protocolos-api-1.0.0-SNAPSHOT.jar
+    container_name: scea-protocolos
     ports:
       - "8082:8082"
     environment:
@@ -68,8 +78,10 @@ services:
   recursos-api:
     build:
       context: .
+      dockerfile: Dockerfile
       args:
-        JAR_FILE: apps/recursos-api/target/*.jar
+        JAR_FILE: apps/recursos-api/target/recursos-api-1.0.0-SNAPSHOT.jar
+    container_name: scea-recursos
     ports:
       - "8083:8083"
     environment:
@@ -82,8 +94,10 @@ services:
   comite-api:
     build:
       context: .
+      dockerfile: Dockerfile
       args:
-        JAR_FILE: apps/comite-api/target/*.jar
+        JAR_FILE: apps/comite-api/target/comite-api-1.0.0-SNAPSHOT.jar
+    container_name: scea-comite
     ports:
       - "8084:8084"
     environment:
@@ -96,8 +110,10 @@ services:
   relatorios-api:
     build:
       context: .
+      dockerfile: Dockerfile
       args:
-        JAR_FILE: apps/relatorios-api/target/*.jar
+        JAR_FILE: apps/relatorios-api/target/relatorios-api-1.0.0-SNAPSHOT.jar
+    container_name: scea-relatorios
     ports:
       - "8085:8085"
     environment:
@@ -113,8 +129,10 @@ services:
   notification-worker:
     build:
       context: .
+      dockerfile: Dockerfile
       args:
-        JAR_FILE: apps/notification-worker/target/*.jar
+        JAR_FILE: apps/notification-worker/target/notification-worker-1.0.0-SNAPSHOT.jar
+    container_name: scea-notifications
     environment:
       EUREKA_HOST: eureka-server
       RABBIT_HOST: rabbitmq
@@ -125,8 +143,10 @@ services:
   api-gateway:
     build:
       context: .
+      dockerfile: Dockerfile
       args:
-        JAR_FILE: apps/api-gateway/target/*.jar
+        JAR_FILE: apps/api-gateway/target/api-gateway-1.0.0-SNAPSHOT.jar
+    container_name: scea-gateway
     ports:
       - "8080:8080"
     environment:
