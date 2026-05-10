@@ -2,7 +2,6 @@ package br.edu.scea.auth.infrastructure.security;
 
 import br.edu.scea.auth.infrastructure.persistence.UsuarioRepository;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -21,14 +20,16 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         return usuarioRepository.findByEmail(email)
-                .map(usuario -> new User(
+                .map(usuario -> new SceaUser(
+                        usuario.getId(),
                         usuario.getEmail(),
                         usuario.getPasswordHash(),
                         usuario.isEstaAtivo(),
                         true, true, true,
                         usuario.getPapeis().stream()
                                 .map(papel -> new SimpleGrantedAuthority("ROLE_" + papel.getCodigo().toUpperCase()))
-                                .collect(Collectors.toSet())
+                                .collect(Collectors.toSet()),
+                        usuario.getNomeCompleto()
                 ))
                 .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado: " + email));        
     }

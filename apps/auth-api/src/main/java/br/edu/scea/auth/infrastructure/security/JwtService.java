@@ -28,12 +28,17 @@ public class JwtService {
 
         SecretKey key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
 
-        return Jwts.builder()
+        var builder = Jwts.builder()
                 .subject(username)
                 .claim("roles", roles)
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + expiration))
-                .signWith(key)
-                .compact();
+                .expiration(new Date(System.currentTimeMillis() + expiration));
+
+        if (authentication.getPrincipal() instanceof SceaUser user) {
+            builder.claim("userId", user.getId().toString());
+            builder.claim("name", user.getNomeCompleto());
+        }
+
+        return builder.signWith(key).compact();
     }
 }

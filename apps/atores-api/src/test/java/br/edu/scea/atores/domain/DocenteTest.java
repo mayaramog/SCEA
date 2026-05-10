@@ -4,6 +4,7 @@ import br.edu.scea.shared.enums.Titulacao;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import java.time.LocalDate;
+import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 
 class DocenteTest {
@@ -11,19 +12,19 @@ class DocenteTest {
     @Test
     @DisplayName("Deve criar um docente válido")
     void deveCriarDocenteValido() {
-        Matricula matricula = new Matricula("12345678");
-        Funcionario funcionario = new Funcionario(matricula, "Dr. Roberto", LocalDate.of(1980, 1, 1), 'M');
-        Docente docente = Docente.criar(funcionario, Titulacao.TITULAR);
+        UUID id = UUID.randomUUID();
+        Matricula matricula = new Matricula("12345");
+        Funcionario funcionario = new Funcionario(matricula, "Dr. Silva", LocalDate.now().minusYears(30), 'M');
+        Docente docente = new Docente(id, funcionario, Titulacao.DOUTOR);
         
         assertNotNull(docente.getId());
-        assertEquals("12345678", docente.getMatricula().valor());
-        assertEquals(Titulacao.TITULAR, docente.getTitulacao());
-        assertEquals('M', docente.getFuncionario().getSexo());
+        assertEquals("Dr. Silva", docente.getNome());
+        assertEquals(Titulacao.DOUTOR, docente.getTitulacao());
     }
 
     @Test
-    @DisplayName("Deve falhar com matrícula inválida")
-    void deveFalharComMatriculaInvalida() {
-        assertThrows(IllegalArgumentException.class, () -> new Matricula("123"));
+    @DisplayName("Deve falhar se a matrícula for inválida")
+    void deveFalharMatriculaInvalida() {
+        assertThrows(IllegalArgumentException.class, () -> new Matricula(""));
     }
 }

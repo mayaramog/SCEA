@@ -26,6 +26,8 @@
         <module>packages/shared-contracts</module>
         <module>apps/eureka-server</module>
         <module>apps/auth-api</module>
+        <module>apps/protocolos-api</module>
+        <module>apps/recursos-api</module>
     </modules>
 
     <dependencyManagement>
@@ -54,6 +56,18 @@
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>${spring-boot.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
