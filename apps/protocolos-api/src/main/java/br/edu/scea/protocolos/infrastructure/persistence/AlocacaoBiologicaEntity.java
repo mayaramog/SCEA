@@ -11,8 +11,8 @@ public class AlocacaoBiologicaEntity {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @com.fasterxml.jackson.annotation.JsonIgnore
     @JoinColumn(name = "protocolo_id")
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private ProtocoloEntity protocolo;
 
     @Column(name = "especie_id")
@@ -57,5 +57,3 @@ public class AlocacaoBiologicaEntity {
     public OffsetDateTime getCriadoEm() { return criadoEm; }
     public void setCriadoEm(OffsetDateTime criadoEm) { this.criadoEm = criadoEm; }
 }
-
-

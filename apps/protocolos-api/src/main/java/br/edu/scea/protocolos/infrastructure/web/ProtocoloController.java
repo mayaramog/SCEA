@@ -70,6 +70,16 @@ public class ProtocoloController {
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping("/{id}/deliberar")
+    @PreAuthorize("hasRole('PRESIDENTE')")
+    @Operation(summary = "Deliberar decisão final sobre o protocolo")
+    public ResponseEntity<Void> deliberar(
+            @PathVariable("id") UUID id,
+            @RequestBody @Valid br.edu.scea.shared.dto.protocolo.DeliberacaoRequest request) {
+        protocoloService.deliberar(id, request);
+        return ResponseEntity.ok().build();
+    }
+
     @GetMapping("/{id}/alocacoes")
     @Operation(summary = "Listar alocações biológicas de um protocolo")
     public ResponseEntity<List<AlocacaoBiologicaEntity>> listarAlocacoes(

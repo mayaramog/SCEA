@@ -1,6 +1,7 @@
 package br.edu.scea.protocolos.application.service;
 
 import br.edu.scea.protocolos.infrastructure.persistence.*;
+import br.edu.scea.shared.dto.protocolo.DeliberacaoRequest;
 import br.edu.scea.shared.dto.protocolo.DesignarPareceristaRequest;
 import br.edu.scea.shared.dto.protocolo.RegistrarParecerRequest;
 import br.edu.scea.shared.dto.protocolo.SubmissaoProtocoloRequest;
@@ -23,13 +24,16 @@ public class ProtocoloService {
     private final ProtocoloRepository protocoloRepository;
     private final ProtocoloDesignacaoParecerRepository designacaoRepository;
     private final ProtocoloParecerRepository parecerRepository;
+    private final ProtocoloDecisaoRepository decisaoRepository;
 
     public ProtocoloService(ProtocoloRepository protocoloRepository,
                             ProtocoloDesignacaoParecerRepository designacaoRepository,
-                            ProtocoloParecerRepository parecerRepository) {
+                            ProtocoloParecerRepository parecerRepository,
+                            ProtocoloDecisaoRepository decisaoRepository) {
         this.protocoloRepository = protocoloRepository;
         this.designacaoRepository = designacaoRepository;
         this.parecerRepository = parecerRepository;
+        this.decisaoRepository = decisaoRepository;
     }
 
     public List<ProtocoloEntity> listar() {
@@ -136,9 +140,36 @@ public class ProtocoloService {
         parecer.setSubmetidoEm(OffsetDateTime.now());
 
         designacao.setEstadoDesignacao("concluido");
-        protocolo.setEstado(EstadoProtocolo.PENDENCIA_SOLICITADA); // Exemplo de transição, ideal seria para Aguardando Deliberação
+        protocolo.setEstado(EstadoProtocolo.PENDENCIA_SOLICITADA); 
         
         parecerRepository.save(parecer);
+        protocoloRepository.save(protocolo);
+    }
+
+    @Transactional
+    public void deliberar(UUID protocoloId, DeliberacaoRequest request) {
+        ProtocoloEntity protocolo = protocoloRepository.findById(protocoloId)
+                .orElseThrow(() -> new RuntimeException("Protocolo não encontrado"));
+
+        UUID usuarioLogadoId = getUsuarioLogadoId();
+
+        ProtocoloDecisaoEntity decisao = new ProtocoloDecisaoEntity();
+        decisao.setId(UUID.randomUUID());
+        decisao.setProtocolo(protocolo);
+        decisao.setReuniaoId(request.reuniaoId());
+        decisao.setTipoDecisao(request.novoEstado().getCodigo());
+        decisao.setFundamentacao(request.fundamentacao());
+        decisao.setDecididoPorUsuarioId(usuarioLogadoId);
+        decisao.setDecididoEm(OffsetDateTime.now());
+        decisao.setValidoAte(request.validoAte());
+        decisao.setCriadoEm(OffsetDateTime.now());
+
+        protocolo.setEstado(request.novoEstado());
+        if (request.novoEstado() == EstadoProtocolo.APROVADO && request.quantidadeAnimaisAprovada() != null) {
+            protocolo.setQuantidadeAnimaisAprovada(request.quantidadeAnimaisAprovada());
+        }
+
+        decisaoRepository.save(decisao);
         protocoloRepository.save(protocolo);
     }
 }

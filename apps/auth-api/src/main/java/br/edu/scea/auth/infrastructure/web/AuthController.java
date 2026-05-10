@@ -2,16 +2,14 @@ package br.edu.scea.auth.infrastructure.web;
 
 import br.edu.scea.auth.domain.model.Usuario;
 import br.edu.scea.auth.domain.model.Papel;
-import br.edu.scea.shared.dto.auth.LoginRequest;
-import br.edu.scea.shared.dto.auth.LoginResponse;
-import br.edu.scea.shared.dto.auth.UsuarioResponse;
-import br.edu.scea.shared.dto.auth.CadastroUsuarioRequest;
+import br.edu.scea.shared.dto.auth.*;
 import br.edu.scea.auth.infrastructure.security.JwtService;
 import br.edu.scea.auth.infrastructure.persistence.UsuarioRepository;
 import br.edu.scea.auth.infrastructure.persistence.PapelRepository;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -85,6 +83,29 @@ public class AuthController {
 
         Usuario salvo = usuarioRepository.save(novoUsuario);
         
+        return ResponseEntity.ok(new UsuarioResponse(
+                salvo.getId(),
+                salvo.getEmail(),
+                salvo.getNomeCompleto(),
+                salvo.getPapeis().stream().map(Papel::getCodigo).collect(Collectors.toSet())
+        ));
+    }
+
+    @PutMapping("/usuarios/{id}/papeis")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<UsuarioResponse> atualizarPapeis(@PathVariable("id") UUID id, @RequestBody @Valid AtualizarPapeisRequest request) {
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+        Set<Papel> novosPapeis = new HashSet<>();
+        for (String codigo : request.codigosPapeis()) {
+            papelRepository.findByCodigo(codigo.toLowerCase()).ifPresent(novosPapeis::add);
+        }
+        usuario.setPapeis(novosPapeis);
+        usuario.setAtualizadoEm(OffsetDateTime.now());
+
+        Usuario salvo = usuarioRepository.save(usuario);
+
         return ResponseEntity.ok(new UsuarioResponse(
                 salvo.getId(),
                 salvo.getEmail(),
