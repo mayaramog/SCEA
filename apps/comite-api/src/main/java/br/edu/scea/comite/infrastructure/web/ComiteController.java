@@ -1,0 +1,70 @@
+package br.edu.scea.comite.infrastructure.web;
+
+import br.edu.scea.comite.infrastructure.persistence.*;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.UUID;
+
+@RestController
+@RequestMapping("/comite/reunioes")
+public class ComiteController {
+
+    private final ReuniaoComiteRepository repository;
+
+    public ComiteController(ReuniaoComiteRepository repository) {
+        this.repository = repository;
+    }
+
+    @PostMapping
+    public ResponseEntity<ReuniaoComiteEntity> criar(@RequestBody ReuniaoComiteEntity reuniao) {
+        if (reuniao.getId() == null) reuniao.setId(UUID.randomUUID());
+        if (reuniao.getCriadoEm() == null) reuniao.setCriadoEm(OffsetDateTime.now());
+        if (reuniao.getEstado() == null) reuniao.setEstado("agendada");
+        
+        return ResponseEntity.ok(repository.save(reuniao));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<ReuniaoComiteEntity>> listar() {
+        return ResponseEntity.ok(repository.findAll());
+    }
+
+    @GetMapping("/{reuniaoId}")
+    public ResponseEntity<ReuniaoComiteEntity> buscarPorId(@PathVariable("reuniaoId") UUID id) {
+        return repository.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PatchMapping("/{reuniaoId}/estado")
+    public ResponseEntity<Void> mudarEstado(@PathVariable("reuniaoId") UUID id, @RequestParam("novoEstado") String novoEstado) {
+        ReuniaoComiteEntity reuniao = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Reunião não encontrada"));
+        
+        reuniao.setEstado(novoEstado.toLowerCase());
+        repository.save(reuniao);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{reuniaoId}/protocolos/{protocoloId}")
+    public ResponseEntity<Void> adicionarProtocolo(@PathVariable("reuniaoId") UUID reuniaoId, @PathVariable("protocoloId") UUID protocoloId) {
+        ReuniaoComiteEntity reuniao = repository.findById(reuniaoId)
+                .orElseThrow(() -> new RuntimeException("Reunião não encontrada"));
+        
+        // Evitar duplicatas na pauta
+        boolean jaExiste = reuniao.getPauta().stream().anyMatch(p -> p.getProtocoloId().equals(protocoloId));
+        if (jaExiste) return ResponseEntity.badRequest().build();
+
+        ReuniaoComiteProtocoloEntity item = new ReuniaoComiteProtocoloEntity();
+        item.setId(UUID.randomUUID());
+        item.setReuniao(reuniao);
+        item.setProtocoloId(protocoloId);
+        item.setOrdemPauta(reuniao.getPauta().size() + 1);
+        
+        reuniao.getPauta().add(item);
+        repository.save(reuniao);
+        return ResponseEntity.ok().build();
+    }
+}

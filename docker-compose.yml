@@ -1,0 +1,155 @@
+services:
+  db:
+    image: postgres:17
+    container_name: scea-db
+    environment:
+      POSTGRES_DB: scea
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: '1234'
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d scea"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  rabbitmq:
+    image: rabbitmq:4-management
+    container_name: scea-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_running"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  eureka-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        JAR_FILE: apps/eureka-server/target/eureka-server-1.0.0-SNAPSHOT.jar
+    container_name: scea-eureka
+    ports:
+      - "8761:8761"
+    environment:
+      EUREKA_HOST: eureka-server
+
+  auth-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        JAR_FILE: apps/auth-api/target/auth-api-1.0.0-SNAPSHOT.jar
+    container_name: scea-auth
+    ports:
+      - "8081:8081"
+    environment:
+      DB_HOST: db
+      EUREKA_HOST: eureka-server
+    depends_on:
+      db:
+        condition: service_healthy
+
+  protocolos-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        JAR_FILE: apps/protocolos-api/target/protocolos-api-1.0.0-SNAPSHOT.jar
+    container_name: scea-protocolos
+    ports:
+      - "8082:8082"
+    environment:
+      DB_HOST: db
+      EUREKA_HOST: eureka-server
+      RABBIT_HOST: rabbitmq
+    depends_on:
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  recursos-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        JAR_FILE: apps/recursos-api/target/recursos-api-1.0.0-SNAPSHOT.jar
+    container_name: scea-recursos
+    ports:
+      - "8083:8083"
+    environment:
+      DB_HOST: db
+      EUREKA_HOST: eureka-server
+    depends_on:
+      db:
+        condition: service_healthy
+
+  comite-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        JAR_FILE: apps/comite-api/target/comite-api-1.0.0-SNAPSHOT.jar
+    container_name: scea-comite
+    ports:
+      - "8084:8084"
+    environment:
+      DB_HOST: db
+      EUREKA_HOST: eureka-server
+    depends_on:
+      db:
+        condition: service_healthy
+
+  relatorios-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        JAR_FILE: apps/relatorios-api/target/relatorios-api-1.0.0-SNAPSHOT.jar
+    container_name: scea-relatorios
+    ports:
+      - "8085:8085"
+    environment:
+      DB_HOST: db
+      EUREKA_HOST: eureka-server
+      RABBIT_HOST: rabbitmq
+    depends_on:
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  notification-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        JAR_FILE: apps/notification-worker/target/notification-worker-1.0.0-SNAPSHOT.jar
+    container_name: scea-notifications
+    environment:
+      EUREKA_HOST: eureka-server
+      RABBIT_HOST: rabbitmq
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        JAR_FILE: apps/api-gateway/target/api-gateway-1.0.0-SNAPSHOT.jar
+    container_name: scea-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      EUREKA_HOST: eureka-server
+    depends_on:
+      - eureka-server

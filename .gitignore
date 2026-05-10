@@ -1,0 +1,39 @@
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.log
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+
+# Eclipse
+.settings/
+.classpath
+.project
+bin/
+
+# Maven
+.mvn/
+mvnw
+mvnw.cmd
+
+# OS generated files
+.DS_Store
+Thumbs.db
+/scea/.gitattributes
+/scea/.gitignore
+/scea/src/main/resources/application.properties
+/scea/compose.yaml
+/scea/flowset-studio.xml
+/scea/pom.xml
+/scea/src/main/java/br/edu/scea/SceaApplication.java
+/scea/src/test/java/br/edu/scea/SceaApplicationTests.java
+/update_packages.py
+frontend/node_modules/
+frontend/dist/
+SCEA-ts-antigo/
+storage/
