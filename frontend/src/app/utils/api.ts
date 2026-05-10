@@ -176,6 +176,24 @@ export const api = {
     return resp.ok ? resp.json() : [];
   },
 
+  async createEspecie(e: Partial<Especie>): Promise<void> {
+    const resp = await fetch(`${API_BASE_URL}/recursos/especies`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(e),
+    });
+    if (!resp.ok) throw new Error('Falha ao cadastrar espécie');
+  },
+
+  async createBioterio(b: Partial<Bioterio>): Promise<void> {
+    const resp = await fetch(`${API_BASE_URL}/recursos/bioterios`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(b),
+    });
+    if (!resp.ok) throw new Error('Falha ao cadastrar biotério');
+  },
+
   // MEETING (COMITE) METHODS
   async fetchReunioes(): Promise<Reuniao[]> {
     const resp = await fetch(`${API_BASE_URL}/comite/reunioes`, { headers: getHeaders() });
