@@ -31,8 +31,10 @@ export type EstadoProtocolo =
 export interface AlocacaoAnimal {
   id: string;
   especie: string;
+  especieId: string; // UUID from backend
   quantidade: number;
   bioterio: string;
+  bioterioId: string; // UUID from backend
 }
 
 export interface Protocolo {
@@ -112,10 +114,9 @@ export default function App() {
     try {
       const criado = await api.createProtocolo(protocolo);
       setProtocolos(prev => [...prev, criado]);
+      setShowProtocoloWizard(false);
     } catch (e: any) {
       alert(e.message);
-    } finally {
-      setShowProtocoloWizard(false);
     }
   };
 

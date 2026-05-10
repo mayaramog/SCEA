@@ -94,9 +94,12 @@ export const api = {
   },
 
   async fetchProtocolos(): Promise<Protocolo[]> {
-    const response = await fetch(`${API_BASE_URL}/protocolos`, {
-      headers: getHeaders(),
-    });
+    // Busca protocolos, espécies e biotérios em paralelo para "traduzir" os IDs em nomes
+    const [response, especies, bioterios] = await Promise.all([
+      fetch(`${API_BASE_URL}/protocolos`, { headers: getHeaders() }),
+      this.fetchEspecies(),
+      this.fetchBioterios()
+    ]);
 
     if (!response.ok) return [];
 
@@ -112,18 +115,25 @@ export const api = {
       dataInicio: p.dataInicioPlanejada,
       dataTermino: p.dataTerminoPlanejada,
       estado: this.mapEstado(p.estado),
-      alocacoes: p.alocacoes.map((a: any) => ({
-        id: a.id,
-        especie: a.especieId, 
-        quantidade: a.quantidadePlanejada,
-        bioterio: a.bioterioId
-      })),
+      alocacoes: p.alocacoes.map((a: any) => {
+        const esp = especies.find(e => e.id === a.especieId);
+        const bio = bioterios.find(b => b.id === a.bioterioId);
+        return {
+          id: a.id,
+          especie: esp ? esp.nome : `Espécie (${a.especieId.substring(0,4)})`,
+          especieId: a.especieId,
+          quantidade: a.quantidadePlanejada,
+          bioterio: bio ? bio.nome : `Biotério (${a.bioterioId.substring(0,4)})`,
+          bioterioId: a.bioterioId
+        };
+      }),
       dataCriacao: p.criadoEm,
       designacoesParecer: p.designacoesParecer || []
     }));
   },
 
   async createProtocolo(p: any): Promise<Protocolo> {
+    console.log('DEBUG: Submitting Protocol:', p);
     const response = await fetch(`${API_BASE_URL}/protocolos`, {
       method: 'POST',
       headers: getHeaders(),
