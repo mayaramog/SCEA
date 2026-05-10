@@ -4,11 +4,12 @@ import { LoginScreen } from './components/LoginScreen';
 import { DocenteDashboard } from './components/DocenteDashboard';
 import { SecretariaDashboard } from './components/SecretariaDashboard';
 import { PresidenteDashboard } from './components/PresidenteDashboard';
+import { PareceristaDashboard } from './components/PareceristaDashboard';
 import { AdminDashboard } from './components/AdminDashboard';
 import { ProtocoloWizard } from './components/ProtocoloWizard';
 import { Header } from './components/Header';
 
-export type UserRole = 'docente' | 'secretaria' | 'presidente' | 'administrador';
+export type UserRole = 'docente' | 'secretaria' | 'presidente' | 'administrador' | 'parecerista';
 export type Titulacao = 'doutor' | 'assistente' | 'livre-docente' | 'titular';
 
 export interface User {
@@ -119,11 +120,25 @@ export default function App() {
   };
 
   const handleDesignarParecerista = async (protocoloId: string, pareceristaId: string) => {
-    await api.fetchProtocolos().then(setProtocolos);
+    try {
+        await api.designarParecerista(protocoloId, pareceristaId);
+        await api.fetchProtocolos().then(setProtocolos);
+    } catch (e: any) {
+        alert(e.message);
+    }
   };
 
-  const handleSubmitParecer = async (protocoloId: string, texto: string, decisao: any) => {
-    await api.fetchProtocolos().then(setProtocolos);
+  const handleSubmitParecer = async (protocoloId: string, resumoTecnico: string, consideracoesEticas: string, decisao: any) => {
+    try {
+        await api.registrarParecer(protocoloId, {
+            resumoTecnico,
+            consideracoesEticas,
+            recomendacao: decisao // Keeping lowercase as expected by @JsonValue
+        });
+        await api.fetchProtocolos().then(setProtocolos);
+    } catch (e: any) {
+        alert(e.message);
+    }
   };
 
   const handleDeliberar = async (protocoloId: string, justificativa: string, decisao: any, reuniaoId: string) => {
@@ -182,7 +197,7 @@ export default function App() {
                 {user.roles.map(r => {
                     const rCode = r.replace('ROLE_', '').toLowerCase() as UserRole;
                     // Filter allowed switchable dashboard roles
-                    if (!['docente', 'secretaria', 'presidente', 'administrador'].includes(rCode)) return null;
+                    if (!['docente', 'secretaria', 'presidente', 'administrador', 'parecerista'].includes(rCode)) return null;
 
                     return (
                         <button
@@ -204,6 +219,13 @@ export default function App() {
             user={user}
             protocolos={protocolos}
             onNovoProtocolo={handleNovoProtocolo}
+          />
+        )}
+
+        {activeRole === 'parecerista' && (
+          <PareceristaDashboard
+            user={user}
+            protocolos={protocolos}
             onSubmitParecer={handleSubmitParecer}
           />
         )}

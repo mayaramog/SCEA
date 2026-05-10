@@ -1,18 +1,14 @@
 import { useState } from 'react';
 import { User, Protocolo } from '../App';
 import { FileText, Plus, Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
-import { ParecerModal } from './ParecerModal';
 
 interface DocenteDashboardProps {
   user: User;
   protocolos: Protocolo[];
   onNovoProtocolo: () => void;
-  onSubmitParecer: (protocoloId: string, texto: string, decisao: 'uso_recomendado' | 'uso_nao_recomendado') => void;
 }
 
-export function DocenteDashboard({ user, protocolos, onNovoProtocolo, onSubmitParecer }: DocenteDashboardProps) {
-  const [selectedProtocolo, setSelectedProtocolo] = useState<Protocolo | null>(null);
-
+export function DocenteDashboard({ user, protocolos, onNovoProtocolo }: DocenteDashboardProps) {
   const getEstadoIcon = (estado: string) => {
     switch (estado) {
       case 'aguardando_envio_parecer':
@@ -41,22 +37,20 @@ export function DocenteDashboard({ user, protocolos, onNovoProtocolo, onSubmitPa
     return estados[estado as keyof typeof estados] || estado;
   };
 
-  const meusProtocolos = protocolos;
-  const protocolosParaParecer = protocolos.filter(p =>
-    p.pareceristaId === user.matricula && p.estado === 'aguardando_parecer'
-  );
+  // Filtrar apenas protocolos onde este usuário é o submetedor
+  const meusProtocolos = protocolos.filter(p => p.docenteId === user.matricula);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-in fade-in duration-500">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">Dashboard do Docente</h2>
-          <p className="text-slate-600 mt-1">Bem-vindo(a), {user.nome}</p>
+          <h2 className="text-3xl font-bold text-slate-900">Dashboard do Pesquisador</h2>
+          <p className="text-slate-600 mt-1">Gerencie suas submissões de protocolos</p>
         </div>
 
         <button
           onClick={onNovoProtocolo}
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 shadow-lg hover:shadow-xl"
+          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold transition-all shadow-lg hover:shadow-xl"
         >
           <Plus className="w-5 h-5" aria-hidden="true" />
           <span>Novo Protocolo</span>
@@ -64,141 +58,86 @@ export function DocenteDashboard({ user, protocolos, onNovoProtocolo, onSubmitPa
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-lg border border-slate-200 p-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-slate-600">Total</span>
+            <span className="text-sm font-bold text-slate-600 uppercase">Total Submetidos</span>
             <FileText className="w-5 h-5 text-slate-400" aria-hidden="true" />
           </div>
-          <p className="text-3xl font-bold text-slate-900">{meusProtocolos.length}</p>
+          <p className="text-4xl font-black text-slate-900">{meusProtocolos.length}</p>
         </div>
 
-        <div className="bg-white rounded-lg border border-yellow-200 bg-yellow-50 p-6">
+        <div className="bg-white rounded-2xl border border-yellow-200 bg-yellow-50/30 p-6 shadow-sm">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-yellow-800">Em Análise</span>
+            <span className="text-sm font-bold text-yellow-800 uppercase">Em Análise</span>
             <Clock className="w-5 h-5 text-yellow-600" aria-hidden="true" />
           </div>
-          <p className="text-3xl font-bold text-yellow-900">
+          <p className="text-4xl font-black text-yellow-900">
             {meusProtocolos.filter(p => ['aguardando_envio_parecer', 'aguardando_parecer', 'aguardando_deliberacao'].includes(p.estado)).length}
           </p>
         </div>
 
-        <div className="bg-white rounded-lg border border-green-200 bg-green-50 p-6">
+        <div className="bg-white rounded-2xl border border-green-200 bg-green-50/30 p-6 shadow-sm">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-green-800">Aprovados</span>
+            <span className="text-sm font-bold text-green-800 uppercase">Aprovados</span>
             <CheckCircle className="w-5 h-5 text-green-600" aria-hidden="true" />
           </div>
-          <p className="text-3xl font-bold text-green-900">
+          <p className="text-4xl font-black text-green-900">
             {meusProtocolos.filter(p => p.estado === 'uso_aprovado').length}
           </p>
         </div>
-
-        <div className="bg-white rounded-lg border border-red-200 bg-red-50 p-6">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-red-800">Pareceres Pendentes</span>
-            <AlertCircle className="w-5 h-5 text-red-600" aria-hidden="true" />
-          </div>
-          <p className="text-3xl font-bold text-red-900">{protocolosParaParecer.length}</p>
-        </div>
       </div>
-
-      {/* Pareceres Pendentes */}
-      {protocolosParaParecer.length > 0 && (
-        <section aria-labelledby="pareceres-heading">
-          <h3 id="pareceres-heading" className="text-lg font-bold text-slate-900 mb-4">
-            Pareceres Pendentes
-          </h3>
-          <div className="bg-orange-50 border border-orange-200 rounded-lg p-6 space-y-4">
-            {protocolosParaParecer.map((protocolo) => (
-              <div
-                key={protocolo.id}
-                className="bg-white rounded-lg border border-slate-200 p-4 hover:shadow-md transition-shadow"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <h4 className="font-medium text-slate-900 mb-1">
-                      Protocolo {protocolo.id}
-                    </h4>
-                    <p className="text-sm text-slate-600 mb-2">
-                      Pesquisador: {protocolo.docenteNome}
-                    </p>
-                    <p className="text-sm text-slate-700 line-clamp-2">
-                      {protocolo.justificativa}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => setSelectedProtocolo(protocolo)}
-                    className="ml-4 bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
-                  >
-                    Emitir Parecer
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
 
       {/* Meus Protocolos */}
       <section aria-labelledby="meus-protocolos-heading">
-        <h3 id="meus-protocolos-heading" className="text-lg font-bold text-slate-900 mb-4">
-          Meus Protocolos
+        <h3 id="meus-protocolos-heading" className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+           <FileText className="w-5 h-5 text-blue-600" />
+           Minhas Submissões
         </h3>
 
         {meusProtocolos.length === 0 ? (
-          <div className="bg-white rounded-lg border border-slate-200 p-12 text-center">
+          <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center shadow-sm">
             <FileText className="w-16 h-16 text-slate-300 mx-auto mb-4" aria-hidden="true" />
-            <p className="text-slate-600 mb-4">Você ainda não submeteu nenhum protocolo</p>
+            <p className="text-slate-600 mb-4 font-medium">Você ainda não submeteu nenhum protocolo</p>
             <button
               onClick={onNovoProtocolo}
-              className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-4 py-2"
+              className="inline-flex items-center gap-2 bg-blue-50 text-blue-600 hover:bg-blue-100 font-bold rounded-xl px-6 py-2 transition-all border border-blue-200"
             >
               <Plus className="w-5 h-5" aria-hidden="true" />
               <span>Submeter Primeiro Protocolo</span>
             </button>
           </div>
         ) : (
-          <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-slate-50 border-b border-slate-200">
+                <thead className="bg-slate-50 border-b">
                   <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                      Protocolo
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                      Data Submissão
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                      Período Experimento
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                      Animais
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                      Estado
-                    </th>
+                    <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Protocolo</th>
+                    <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Submissão</th>
+                    <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Período</th>
+                    <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Animais</th>
+                    <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Estado</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-200">
+                <tbody className="divide-y divide-slate-100">
                   {meusProtocolos.map((protocolo) => (
                     <tr key={protocolo.id} className="hover:bg-slate-50 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="font-medium text-slate-900">{protocolo.id}</div>
-                        <div className="text-sm text-slate-500 line-clamp-1">{protocolo.justificativa}</div>
+                      <td className="px-6 py-4">
+                        <div className="font-bold text-slate-900">{protocolo.id.substring(0,8)}...</div>
+                        <div className="text-xs text-slate-500 line-clamp-1">{protocolo.justificativa}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
                         {new Date(protocolo.dataCriacao).toLocaleDateString('pt-BR')}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
-                        {new Date(protocolo.dataInicio).toLocaleDateString('pt-BR')} até{' '}
-                        {new Date(protocolo.dataTermino).toLocaleDateString('pt-BR')}
+                        {new Date(protocolo.dataInicio).toLocaleDateString('pt-BR')} - {new Date(protocolo.dataTermino).toLocaleDateString('pt-BR')}
                       </td>
                       <td className="px-6 py-4">
-                        <div className="text-sm text-slate-600">
-                          {protocolo.alocacoes.map((a, i) => (
-                            <div key={a.id}>
-                              {a.quantidade} {a.especie} ({a.bioterio})
+                        <div className="text-xs text-slate-600">
+                          {protocolo.alocacoes.map((a) => (
+                            <div key={a.id} className="bg-slate-100 px-2 py-0.5 rounded mt-1 w-fit">
+                              {a.quantidade} {a.especie}
                             </div>
                           ))}
                         </div>
@@ -206,7 +145,7 @@ export function DocenteDashboard({ user, protocolos, onNovoProtocolo, onSubmitPa
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-2">
                           {getEstadoIcon(protocolo.estado)}
-                          <span className="text-sm text-slate-700">
+                          <span className="text-xs font-bold text-slate-700">
                             {getEstadoText(protocolo.estado)}
                           </span>
                         </div>
@@ -219,17 +158,6 @@ export function DocenteDashboard({ user, protocolos, onNovoProtocolo, onSubmitPa
           </div>
         )}
       </section>
-
-      {selectedProtocolo && (
-        <ParecerModal
-          protocolo={selectedProtocolo}
-          onClose={() => setSelectedProtocolo(null)}
-          onSubmit={(texto, decisao) => {
-            onSubmitParecer(selectedProtocolo.id, texto, decisao);
-            setSelectedProtocolo(null);
-          }}
-        />
-      )}
     </div>
   );
 }

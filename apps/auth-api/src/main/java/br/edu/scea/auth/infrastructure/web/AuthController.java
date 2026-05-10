@@ -91,7 +91,7 @@ public class AuthController {
     }
 
     @GetMapping("/usuarios")
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'SECRETARIA')")
     public ResponseEntity<List<UsuarioResponse>> listarTodos() {
         return ResponseEntity.ok(usuarioRepository.findAll().stream()
                 .map(this::mapToResponse)

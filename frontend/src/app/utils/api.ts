@@ -72,7 +72,7 @@ export const api = {
 
     const data = await response.json();
     
-    // Default role priority: admin > presidente > secretaria > docente
+    // Default role priority: admin > presidente > secretaria > parecerista > docente
     let role: UserRole = 'docente';
     if (data.papeis.includes('administrador')) {
       role = 'administrador';
@@ -80,6 +80,8 @@ export const api = {
       role = 'presidente';
     } else if (data.papeis.includes('secretaria')) {
       role = 'secretaria';
+    } else if (data.papeis.includes('parecerista')) {
+      role = 'parecerista';
     }
 
     return {
@@ -234,6 +236,36 @@ export const api = {
       body: JSON.stringify({ codigosPapeis: papeis }),
     });
     if (!resp.ok) throw new Error('Falha ao atualizar papéis');
+  },
+
+  async designarParecerista(protocoloId: string, pareceristaId: string): Promise<void> {
+    const prazo = new Date();
+    prazo.setDate(prazo.getDate() + 30); // Prazo padrão de 30 dias
+
+    const resp = await fetch(`${API_BASE_URL}/protocolos/${protocoloId}/designar`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ 
+        usuarioPareceristaId: pareceristaId,
+        prazoEm: prazo.toISOString()
+      }),
+    });
+    if (!resp.ok) {
+        const data = await resp.json().catch(() => ({}));
+        throw new Error(data.detail || 'Falha ao designar parecerista');
+    }
+  },
+
+  async registrarParecer(protocoloId: string, payload: any): Promise<void> {
+    const resp = await fetch(`${API_BASE_URL}/protocolos/${protocoloId}/parecer`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(payload),
+    });
+    if (!resp.ok) {
+        const data = await resp.json().catch(() => ({}));
+        throw new Error(data.detail || 'Falha ao registrar parecer');
+    }
   },
 
   mapEstado(backendEstado: string): any {
