@@ -11,9 +11,10 @@ export type UserRole = 'docente' | 'secretaria' | 'presidente';
 export type Titulacao = 'doutor' | 'assistente' | 'livre-docente' | 'titular';
 
 export interface User {
-  matricula: string; // UUID in backend
+  matricula: string;
   nome: string;
-  role: UserRole;
+  role: UserRole; // Default role
+  roles: string[]; // All roles from backend
   email: string;
   titulacao?: Titulacao;
 }
@@ -43,17 +44,23 @@ export interface Protocolo {
   dataTermino: string;
   estado: EstadoProtocolo;
   alocacoes: AlocacaoAnimal[];
-  pareceristaId?: string;
-  pareceristaNome?: string;
-  textoParecer?: string;
-  decisaoParecer?: 'uso_recomendado' | 'uso_nao_recomendado';
-  justificativaDeliberacao?: string;
-  decisaoFinal?: 'uso_aprovado' | 'uso_reprovado';
+  designacoesParecer: any[];
   dataCriacao: string;
+}
+
+export interface Reuniao {
+  id: string;
+  codigoReuniao: string;
+  agendadaPara: string;
+  descricaoLocal: string;
+  estado: 'agendada' | 'em_andamento' | 'concluida' | 'cancelada';
+  observacoes: string;
+  pauta: any[];
 }
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
+  const [activeRole, setActiveRole] = useState<UserRole>('docente');
   const [showProtocoloWizard, setShowProtocoloWizard] = useState(false);
   const [protocolos, setProtocolos] = useState<Protocolo[]>([]);
   const [loading, setLoading] = useState(true);
@@ -62,7 +69,10 @@ export default function App() {
     const token = localStorage.getItem('scea_token');
     if (token) {
       api.getMe()
-        .then(u => setUser(u))
+        .then(u => {
+            setUser(u);
+            setActiveRole(u.role);
+        })
         .catch(() => localStorage.removeItem('scea_token'))
         .finally(() => setLoading(false));
     } else {
@@ -78,6 +88,7 @@ export default function App() {
 
   const handleLogin = (loggedUser: User) => {
     setUser(loggedUser);
+    setActiveRole(loggedUser.role);
   };
 
   const handleLogout = () => {
@@ -107,8 +118,6 @@ export default function App() {
   };
 
   const handleDesignarParecerista = async (protocoloId: string, pareceristaId: string) => {
-    // Note: Implementation for designation/parecer would go here calling real API
-    // For now we refresh the list
     await api.fetchProtocolos().then(setProtocolos);
   };
 
@@ -116,8 +125,19 @@ export default function App() {
     await api.fetchProtocolos().then(setProtocolos);
   };
 
-  const handleDeliberar = async (protocoloId: string, justificativa: string, decisao: any) => {
-    await api.fetchProtocolos().then(setProtocolos);
+  const handleDeliberar = async (protocoloId: string, justificativa: string, decisao: any, reuniaoId: string) => {
+    try {
+      await api.deliberar(protocoloId, {
+        reuniaoId,
+        novoEstado: decisao === 'APROVADO' ? 'aprovado' : 'reprovado',
+        fundamentacao: justificativa,
+        quantidadeAnimaisAprovada: 0,
+        validoAte: new Date(new Date().getFullYear() + 1, 11, 31).toISOString()
+      });
+      await api.fetchProtocolos().then(setProtocolos);
+    } catch (e: any) {
+      alert(e.message);
+    }
   };
 
   if (loading) {
@@ -142,10 +162,39 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <Header user={user} onLogout={handleLogout} />
+      <Header 
+        user={user} 
+        onLogout={handleLogout} 
+        activeRole={activeRole} 
+        onRoleChange={setActiveRole} 
+      />
 
       <main className="container mx-auto px-4 py-8 max-w-7xl">
-        {user.role === 'docente' && (
+        {/* Role Selector Tabs for multi-role users */}
+        {user.roles.length > 1 && (
+            <div className="flex gap-2 mb-6 bg-white p-1 rounded-xl shadow-sm border border-slate-200 w-fit">
+                {user.roles.map(r => {
+                    const rCode = r.replace('ROLE_', '').toLowerCase() as UserRole;
+                    // Only show switchable app roles
+                    if (!['docente', 'secretaria', 'presidente', 'administrador'].includes(rCode)) return null;
+                    const displayRole = rCode === 'administrador' ? 'presidente' : rCode;
+
+                    return (
+                        <button
+                            key={r}
+                            onClick={() => setActiveRole(displayRole as UserRole)}
+                            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+                                activeRole === displayRole ? 'bg-blue-600 text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
+                            }`}
+                        >
+                            Ver como {displayRole.charAt(0).toUpperCase() + displayRole.slice(1)}
+                        </button>
+                    );
+                })}
+            </div>
+        )}
+
+        {activeRole === 'docente' && (
           <DocenteDashboard
             user={user}
             protocolos={protocolos}
@@ -154,14 +203,14 @@ export default function App() {
           />
         )}
 
-        {user.role === 'secretaria' && (
+        {activeRole === 'secretaria' && (
           <SecretariaDashboard
             protocolos={protocolos}
             onDesignarParecerista={handleDesignarParecerista}
           />
         )}
 
-        {user.role === 'presidente' && (
+        {activeRole === 'presidente' && (
           <PresidenteDashboard
             protocolos={protocolos}
             onDeliberar={handleDeliberar}

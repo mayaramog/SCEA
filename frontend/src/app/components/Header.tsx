@@ -1,12 +1,14 @@
-import { User } from '../App';
-import { LogOut, User as UserIcon } from 'lucide-react';
+import { User, UserRole } from '../App';
+import { LogOut, User as UserIcon, Shield } from 'lucide-react';
 
 interface HeaderProps {
   user: User;
   onLogout: () => void;
+  activeRole: UserRole;
+  onRoleChange: (role: UserRole) => void;
 }
 
-export function Header({ user, onLogout }: HeaderProps) {
+export function Header({ user, onLogout, activeRole }: HeaderProps) {
   const getRoleName = (role: string) => {
     const roles = {
       docente: 'Docente',
@@ -51,13 +53,18 @@ export function Header({ user, onLogout }: HeaderProps) {
           </div>
 
           <div className="flex items-center gap-4">
+            {/* View Mode Badge */}
+            <div className="hidden md:flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-700 rounded-full border border-blue-100">
+               <Shield className="w-3 h-3" />
+               <span className="text-[10px] font-bold uppercase tracking-wider">Modo: {getRoleName(activeRole)}</span>
+            </div>
+
             <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-lg border border-slate-200">
               <UserIcon className="w-4 h-4 text-slate-600" aria-hidden="true" />
               <div className="text-sm">
                 <p className="font-medium text-slate-900">{user.nome}</p>
                 <p className="text-xs text-slate-600">
-                  {getRoleName(user.role)}
-                  {getTitulacaoName(user.titulacao)}
+                  {user.email}
                 </p>
               </div>
             </div>

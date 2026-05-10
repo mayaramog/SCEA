@@ -22,6 +22,16 @@ export interface Bioterio {
   nome: string;
 }
 
+export interface Reuniao {
+  id: string;
+  codigoReuniao: string;
+  agendadaPara: string;
+  descricaoLocal: string;
+  estado: 'agendada' | 'em_andamento' | 'concluida' | 'cancelada';
+  observacoes: string;
+  pauta: any[];
+}
+
 export const api = {
   async login(email: string, senha: string): Promise<{ token: string; user: User }> {
     const response = await fetch(`${API_BASE_URL}/auth/login`, {
@@ -54,20 +64,19 @@ export const api = {
 
     const data = await response.json();
     
+    // Default role based on priority
     let role: UserRole = 'docente';
     if (data.papeis.includes('administrador') || data.papeis.includes('presidente')) {
       role = 'presidente';
     } else if (data.papeis.includes('secretaria')) {
       role = 'secretaria';
-    } else if (data.papeis.includes('parecerista')) {
-      // No frontend existing roles, parecerista might fall under docente for now or a new one
-      role = 'docente'; 
     }
 
     return {
       matricula: data.id,
       nome: data.nomeCompleto,
       role: role,
+      roles: data.papeis, // Passing all roles
       email: data.email
     };
   },
@@ -97,7 +106,8 @@ export const api = {
         quantidade: a.quantidadePlanejada,
         bioterio: a.bioterioId
       })),
-      dataCriacao: p.criadoEm
+      dataCriacao: p.criadoEm,
+      designacoesParecer: p.designacoesParecer || []
     }));
   },
 
@@ -142,6 +152,50 @@ export const api = {
   async fetchBioterios(): Promise<Bioterio[]> {
     const resp = await fetch(`${API_BASE_URL}/recursos/bioterios`, { headers: getHeaders() });
     return resp.ok ? resp.json() : [];
+  },
+
+  // MEETING (COMITE) METHODS
+  async fetchReunioes(): Promise<Reuniao[]> {
+    const resp = await fetch(`${API_BASE_URL}/comite/reunioes`, { headers: getHeaders() });
+    return resp.ok ? resp.json() : [];
+  },
+
+  async createReuniao(r: Partial<Reuniao>): Promise<Reuniao> {
+    const resp = await fetch(`${API_BASE_URL}/comite/reunioes`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(r),
+    });
+    if (!resp.ok) throw new Error('Falha ao criar reunião');
+    return resp.json();
+  },
+
+  async updateReuniaoEstado(id: string, novoEstado: string): Promise<void> {
+    const resp = await fetch(`${API_BASE_URL}/comite/reunioes/${id}/estado?novoEstado=${novoEstado}`, {
+      method: 'PATCH',
+      headers: getHeaders(),
+    });
+    if (!resp.ok) throw new Error('Falha ao atualizar estado da reunião');
+  },
+
+  async adicionarProtocoloNaPauta(reuniaoId: string, protocoloId: string): Promise<void> {
+    const resp = await fetch(`${API_BASE_URL}/comite/reunioes/${reuniaoId}/protocolos/${protocoloId}`, {
+      method: 'POST',
+      headers: getHeaders(),
+    });
+    if (!resp.ok) throw new Error('Falha ao adicionar protocolo na pauta');
+  },
+
+  async deliberar(protocoloId: string, payload: any): Promise<void> {
+    const resp = await fetch(`${API_BASE_URL}/protocolos/${protocoloId}/deliberar`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(payload),
+    });
+    if (!resp.ok) {
+      const data = await resp.json().catch(() => ({}));
+      throw new Error(data.detail || 'Falha na deliberação');
+    }
   },
 
   mapEstado(backendEstado: string): any {

@@ -296,7 +296,7 @@ CREATE TABLE scea.reuniao_comite (
     estado text DEFAULT 'scheduled'::text NOT NULL,
     observacoes text,
     criado_em timestamp with time zone DEFAULT now() NOT NULL,
-    CONSTRAINT reuniao_comite_estado_check CHECK ((estado = ANY (ARRAY['agendada'::text, 'concluida'::text, 'cancelada'::text])))
+    CONSTRAINT reuniao_comite_estado_check CHECK ((estado = ANY (ARRAY['agendada'::text, 'em_andamento'::text, 'concluida'::text, 'cancelada'::text])))
 );
 
 
@@ -521,7 +521,6 @@ f2c8d169-5826-4c5a-a9d2-5f2f2ae92d0c	7cacdc08-de03-4fd8-8ccf-83d7e2b456e7	\N	202
 f2c8d169-5826-4c5a-a9d2-5f2f2ae92d0c	9535faec-57ca-4616-aa89-027399ae0ffb	f2c8d169-5826-4c5a-a9d2-5f2f2ae92d0c	2026-05-09 22:19:04.43702-03
 f2c8d169-5826-4c5a-a9d2-5f2f2ae92d0c	550e8400-e29b-41d4-a716-446655440099	f2c8d169-5826-4c5a-a9d2-5f2f2ae92d0c	2026-05-09 22:20:10.29985-03
 550e8400-e29b-41d4-a716-446655440005	1d533850-a080-4b8e-a5c1-131981dc1bcf	\N	2026-05-09 20:45:01.320159-03
-f2c8d169-5826-4c5a-a9d2-5f2f2ae92d0c	1d533850-a080-4b8e-a5c1-131981dc1bcf	f2c8d169-5826-4c5a-a9d2-5f2f2ae92d0c	2026-05-09 22:55:25.29769-03
 \.
 
 
