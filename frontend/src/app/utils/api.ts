@@ -32,6 +32,14 @@ export interface Reuniao {
   pauta: any[];
 }
 
+export interface UsuarioBackend {
+  id: string;
+  nomeCompleto: string;
+  email: string;
+  papeis: string[];
+  estaAtivo: boolean;
+}
+
 export const api = {
   async login(email: string, senha: string): Promise<{ token: string; user: User }> {
     const response = await fetch(`${API_BASE_URL}/auth/login`, {
@@ -64,9 +72,11 @@ export const api = {
 
     const data = await response.json();
     
-    // Default role based on priority
+    // Default role priority: admin > presidente > secretaria > docente
     let role: UserRole = 'docente';
-    if (data.papeis.includes('administrador') || data.papeis.includes('presidente')) {
+    if (data.papeis.includes('administrador')) {
+      role = 'administrador';
+    } else if (data.papeis.includes('presidente')) {
       role = 'presidente';
     } else if (data.papeis.includes('secretaria')) {
       role = 'secretaria';
@@ -76,7 +86,7 @@ export const api = {
       matricula: data.id,
       nome: data.nomeCompleto,
       role: role,
-      roles: data.papeis, // Passing all roles
+      roles: data.papeis,
       email: data.email
     };
   },
@@ -196,6 +206,34 @@ export const api = {
       const data = await resp.json().catch(() => ({}));
       throw new Error(data.detail || 'Falha na deliberação');
     }
+  },
+
+  // ADMIN METHODS
+  async fetchUsuarios(): Promise<UsuarioBackend[]> {
+    const resp = await fetch(`${API_BASE_URL}/auth/usuarios`, { headers: getHeaders() });
+    if (!resp.ok) throw new Error('Falha ao listar usuários');
+    return resp.json();
+  },
+
+  async createUsuario(u: any): Promise<void> {
+    const resp = await fetch(`${API_BASE_URL}/auth/usuarios`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(u),
+    });
+    if (!resp.ok) {
+        const errorData = await resp.json().catch(() => ({}));
+        throw new Error(errorData.detail || 'Falha ao criar usuário');
+    }
+  },
+
+  async updateUsuarioPapeis(userId: string, papeis: string[]): Promise<void> {
+    const resp = await fetch(`${API_BASE_URL}/auth/usuarios/${userId}/papeis`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify({ codigosPapeis: papeis }),
+    });
+    if (!resp.ok) throw new Error('Falha ao atualizar papéis');
   },
 
   mapEstado(backendEstado: string): any {

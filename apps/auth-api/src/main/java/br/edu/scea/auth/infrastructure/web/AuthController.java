@@ -14,10 +14,12 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.OffsetDateTime;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -59,6 +61,7 @@ public class AuthController {
     }
 
     @PostMapping("/usuarios")
+    @Transactional
     public ResponseEntity<UsuarioResponse> cadastrar(@RequestBody @Valid CadastroUsuarioRequest request) {
         if (usuarioRepository.findByEmail(request.email()).isPresent()) {
             throw new RuntimeException("E-mail já cadastrado");
@@ -76,55 +79,63 @@ public class AuthController {
         Set<Papel> papeis = new HashSet<>();
         if (request.codigosPapeis() != null) {
             for (String codigo : request.codigosPapeis()) {
-                papelRepository.findByCodigo(codigo.toLowerCase()).ifPresent(papeis::add);
+                String cleanCode = codigo.replace("ROLE_", "").toLowerCase();
+                papelRepository.findByCodigo(cleanCode).ifPresent(papeis::add);
             }
         }
         novoUsuario.setPapeis(papeis);
 
         Usuario salvo = usuarioRepository.save(novoUsuario);
         
-        return ResponseEntity.ok(new UsuarioResponse(
-                salvo.getId(),
-                salvo.getEmail(),
-                salvo.getNomeCompleto(),
-                salvo.getPapeis().stream().map(Papel::getCodigo).collect(Collectors.toSet())
-        ));
+        return ResponseEntity.ok(mapToResponse(salvo));
+    }
+
+    @GetMapping("/usuarios")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<List<UsuarioResponse>> listarTodos() {
+        return ResponseEntity.ok(usuarioRepository.findAll().stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList()));
     }
 
     @PutMapping("/usuarios/{id}/papeis")
     @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @Transactional
     public ResponseEntity<UsuarioResponse> atualizarPapeis(@PathVariable("id") UUID id, @RequestBody @Valid AtualizarPapeisRequest request) {
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
         Set<Papel> novosPapeis = new HashSet<>();
         for (String codigo : request.codigosPapeis()) {
-            papelRepository.findByCodigo(codigo.toLowerCase()).ifPresent(novosPapeis::add);
+            // Limpa o prefixo ROLE_ vindo do frontend antes de buscar no banco
+            String cleanCode = codigo.replace("ROLE_", "").toLowerCase();
+            papelRepository.findByCodigo(cleanCode).ifPresent(novosPapeis::add);
         }
+        
         usuario.setPapeis(novosPapeis);
         usuario.setAtualizadoEm(OffsetDateTime.now());
 
         Usuario salvo = usuarioRepository.save(usuario);
 
-        return ResponseEntity.ok(new UsuarioResponse(
-                salvo.getId(),
-                salvo.getEmail(),
-                salvo.getNomeCompleto(),
-                salvo.getPapeis().stream().map(Papel::getCodigo).collect(Collectors.toSet())
-        ));
+        return ResponseEntity.ok(mapToResponse(salvo));
     }
 
     @GetMapping("/me")
     public ResponseEntity<UsuarioResponse> me(Authentication authentication) {
         return usuarioRepository.findByEmail(authentication.getName())
-                .map(usuario -> ResponseEntity.ok(new UsuarioResponse(
-                        usuario.getId(),
-                        usuario.getEmail(),
-                        usuario.getNomeCompleto(),
-                        usuario.getPapeis().stream()
-                                .map(Papel::getCodigo)
-                                .collect(Collectors.toSet())
-                )))
+                .map(usuario -> ResponseEntity.ok(mapToResponse(usuario)))
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    private UsuarioResponse mapToResponse(Usuario usuario) {
+        return new UsuarioResponse(
+                usuario.getId(),
+                usuario.getEmail(),
+                usuario.getNomeCompleto(),
+                usuario.getPapeis().stream()
+                        .map(Papel::getCodigo)
+                        .collect(Collectors.toSet()),
+                usuario.isEstaAtivo()
+        );
     }
 }

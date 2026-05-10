@@ -4,10 +4,11 @@ import { LoginScreen } from './components/LoginScreen';
 import { DocenteDashboard } from './components/DocenteDashboard';
 import { SecretariaDashboard } from './components/SecretariaDashboard';
 import { PresidenteDashboard } from './components/PresidenteDashboard';
+import { AdminDashboard } from './components/AdminDashboard';
 import { ProtocoloWizard } from './components/ProtocoloWizard';
 import { Header } from './components/Header';
 
-export type UserRole = 'docente' | 'secretaria' | 'presidente';
+export type UserRole = 'docente' | 'secretaria' | 'presidente' | 'administrador';
 export type Titulacao = 'doutor' | 'assistente' | 'livre-docente' | 'titular';
 
 export interface User {
@@ -151,7 +152,12 @@ export default function App() {
   if (showProtocoloWizard) {
     return (
       <div className="min-h-screen bg-slate-50">
-        <Header user={user} onLogout={handleLogout} />
+        <Header 
+            user={user} 
+            onLogout={handleLogout} 
+            activeRole={activeRole} 
+            onRoleChange={setActiveRole} 
+        />
         <ProtocoloWizard
           onSubmit={handleSubmitProtocolo}
           onCancel={handleCancelarProtocolo}
@@ -172,22 +178,21 @@ export default function App() {
       <main className="container mx-auto px-4 py-8 max-w-7xl">
         {/* Role Selector Tabs for multi-role users */}
         {user.roles.length > 1 && (
-            <div className="flex gap-2 mb-6 bg-white p-1 rounded-xl shadow-sm border border-slate-200 w-fit">
+            <div className="flex flex-wrap gap-2 mb-6 bg-white p-1 rounded-xl shadow-sm border border-slate-200 w-fit">
                 {user.roles.map(r => {
                     const rCode = r.replace('ROLE_', '').toLowerCase() as UserRole;
-                    // Only show switchable app roles
+                    // Filter allowed switchable dashboard roles
                     if (!['docente', 'secretaria', 'presidente', 'administrador'].includes(rCode)) return null;
-                    const displayRole = rCode === 'administrador' ? 'presidente' : rCode;
 
                     return (
                         <button
                             key={r}
-                            onClick={() => setActiveRole(displayRole as UserRole)}
+                            onClick={() => setActiveRole(rCode)}
                             className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
-                                activeRole === displayRole ? 'bg-blue-600 text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
+                                activeRole === rCode ? 'bg-blue-600 text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
                             }`}
                         >
-                            Ver como {displayRole.charAt(0).toUpperCase() + displayRole.slice(1)}
+                            Ver como {rCode.charAt(0).toUpperCase() + rCode.slice(1)}
                         </button>
                     );
                 })}
@@ -215,6 +220,10 @@ export default function App() {
             protocolos={protocolos}
             onDeliberar={handleDeliberar}
           />
+        )}
+
+        {activeRole === 'administrador' && (
+            <AdminDashboard />
         )}
       </main>
     </div>

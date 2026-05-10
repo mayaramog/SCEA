@@ -7,5 +7,6 @@ public record UsuarioResponse(
     UUID id,
     String email,
     String nomeCompleto,
-    Set<String> papeis
+    Set<String> papeis,
+    boolean estaAtivo
 ) {}
