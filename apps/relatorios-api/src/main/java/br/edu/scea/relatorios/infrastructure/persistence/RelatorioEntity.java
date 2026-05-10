@@ -1,4 +1,4 @@
-package br.edu.scea.protocolos.infrastructure.persistence;
+package br.edu.scea.relatorios.infrastructure.persistence;
 
 import jakarta.persistence.*;
 import java.time.OffsetDateTime;
@@ -10,10 +10,8 @@ public class RelatorioEntity {
     @Id
     private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "protocolo_id")
-    @com.fasterxml.jackson.annotation.JsonIgnore
-    private ProtocoloEntity protocolo;
+    @Column(name = "protocolo_id", nullable = false)
+    private UUID protocoloId;
 
     @Column(name = "tipo_documento")
     private String tipoDocumento;
@@ -27,7 +25,7 @@ public class RelatorioEntity {
     @Column(name = "mime_type")
     private String mimeType;
 
-    @Column(name = "enviado_por_usuario_id")
+    @Column(name = "enviado_por_usuario_id", nullable = true)
     private UUID enviadoPorUsuarioId;
 
     @Column(name = "enviado_em")
@@ -35,10 +33,11 @@ public class RelatorioEntity {
 
     public RelatorioEntity() {}
 
+    // Getters and Setters
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }
-    public ProtocoloEntity getProtocolo() { return protocolo; }
-    public void setProtocolo(ProtocoloEntity protocolo) { this.protocolo = protocolo; }
+    public UUID getProtocoloId() { return protocoloId; }
+    public void setProtocoloId(UUID protocoloId) { this.protocoloId = protocoloId; }
     public String getTipoDocumento() { return tipoDocumento; }
     public void setTipoDocumento(String tipoDocumento) { this.tipoDocumento = tipoDocumento; }
     public String getCaminhoArmazenamento() { return caminhoArmazenamento; }

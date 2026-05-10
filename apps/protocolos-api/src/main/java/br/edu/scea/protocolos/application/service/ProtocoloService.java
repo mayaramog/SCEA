@@ -1,16 +1,20 @@
 package br.edu.scea.protocolos.application.service;
 
 import br.edu.scea.protocolos.infrastructure.persistence.*;
+import br.edu.scea.protocolos.infrastructure.messaging.RabbitMQConfig;
 import br.edu.scea.shared.dto.protocolo.DeliberacaoRequest;
 import br.edu.scea.shared.dto.protocolo.DesignarPareceristaRequest;
 import br.edu.scea.shared.dto.protocolo.RegistrarParecerRequest;
 import br.edu.scea.shared.dto.protocolo.SubmissaoProtocoloRequest;
 import br.edu.scea.shared.enums.EstadoProtocolo;
+import br.edu.scea.shared.events.integration.ProtocolApprovedV1;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -26,17 +30,20 @@ public class ProtocoloService {
     private final ProtocoloParecerRepository parecerRepository;
     private final ProtocoloDecisaoRepository decisaoRepository;
     private final CalendarioService calendarioService;
+    private final RabbitTemplate rabbitTemplate;
 
     public ProtocoloService(ProtocoloRepository protocoloRepository,
                             ProtocoloDesignacaoParecerRepository designacaoRepository,
                             ProtocoloParecerRepository parecerRepository,
                             ProtocoloDecisaoRepository decisaoRepository,
-                            CalendarioService calendarioService) {
+                            CalendarioService calendarioService,
+                            RabbitTemplate rabbitTemplate) {
         this.protocoloRepository = protocoloRepository;
         this.designacaoRepository = designacaoRepository;
         this.parecerRepository = parecerRepository;
         this.decisaoRepository = decisaoRepository;
         this.calendarioService = calendarioService;
+        this.rabbitTemplate = rabbitTemplate;
     }
 
     public List<ProtocoloEntity> listar() {
@@ -60,7 +67,6 @@ public class ProtocoloService {
 
     @Transactional
     public UUID submeter(SubmissaoProtocoloRequest request) {
-        // Validação de datas básicas
         if (request.dataInicioPlanejada().isAfter(request.dataTerminoPlanejada())) {
             throw new IllegalArgumentException("A data de início não pode ser após a data de término.");
         }
@@ -68,7 +74,6 @@ public class ProtocoloService {
             throw new IllegalArgumentException("A data de início não pode ser no passado.");
         }
 
-        // Validação de Dias Úteis e Feriados (Brasil API)
         calendarioService.validarDiaUtil(request.dataInicioPlanejada(), "Início do experimento");
         calendarioService.validarDiaUtil(request.dataTerminoPlanejada(), "Término do experimento");
 
@@ -180,11 +185,41 @@ public class ProtocoloService {
         decisao.setCriadoEm(OffsetDateTime.now());
 
         protocolo.setEstado(request.novoEstado());
-        if (request.novoEstado() == EstadoProtocolo.APROVADO && request.quantidadeAnimaisAprovada() != null) {
-            protocolo.setQuantidadeAnimaisAprovada(request.quantidadeAnimaisAprovada());
+        if (request.novoEstado() == EstadoProtocolo.APROVADO) {
+            if (request.quantidadeAnimaisAprovada() != null) {
+                protocolo.setQuantidadeAnimaisAprovada(request.quantidadeAnimaisAprovada());
+            }
+            
+            // PUBLICAR EVENTO PARA RABBITMQ
+            publicarEventoAprovacao(protocolo, request.fundamentacao());
         }
 
         decisaoRepository.save(decisao);
         protocoloRepository.save(protocolo);
+    }
+
+    private void publicarEventoAprovacao(ProtocoloEntity p, String justificativa) {
+        try {
+            ProtocolApprovedV1 event = new ProtocolApprovedV1(
+                UUID.randomUUID(),
+                Instant.now(),
+                "1.0",
+                UUID.randomUUID().toString(),
+                "protocolos-api",
+                p.getId(),
+                justificativa,
+                p.getDataInicioPlanejada(),
+                p.getDataTerminoPlanejada()
+            );
+            
+            rabbitTemplate.convertAndSend(
+                RabbitMQConfig.EXCHANGE_NAME, 
+                RabbitMQConfig.ROUTING_KEY_APROVADO, 
+                event
+            );
+            System.out.println("DEBUG: Evento de aprovação enviado para RabbitMQ: " + p.getId());
+        } catch (Exception e) {
+            System.err.println("ERRO ao enviar evento para RabbitMQ: " + e.getMessage());
+        }
     }
 }

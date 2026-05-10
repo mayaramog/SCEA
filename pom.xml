@@ -21,16 +21,17 @@
         <spring-boot.version>4.0.6</spring-boot.version>
         <spring-cloud.version>2025.1.1</spring-cloud.version>
     </properties>
-
-    <modules>
-        <module>packages/shared-contracts</module>
-        <module>apps/eureka-server</module>
-        <module>apps/auth-api</module>
-        <module>apps/protocolos-api</module>
-        <module>apps/recursos-api</module>
-        <module>apps/comite-api</module>
-        <module>apps/notification-worker</module>
-    </modules>
+<modules>
+    <module>packages/shared-contracts</module>
+    <module>apps/eureka-server</module>
+    <module>apps/auth-api</module>
+    <module>apps/protocolos-api</module>
+    <module>apps/recursos-api</module>
+    <module>apps/comite-api</module>
+    <module>apps/relatorios-api</module>
+    <module>apps/api-gateway</module>
+    <module>apps/notification-worker</module>
+</modules>
 
     <dependencyManagement>
         <dependencies>
