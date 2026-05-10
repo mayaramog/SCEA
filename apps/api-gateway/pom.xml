@@ -15,9 +15,10 @@
     <name>SCEA API Gateway</name>
 
     <dependencies>
+        <!-- Using the newer artifact name for Spring Cloud Gateway 2024+ -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-gateway</artifactId>
+            <artifactId>spring-cloud-starter-gateway-server-webflux</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.cloud</groupId>

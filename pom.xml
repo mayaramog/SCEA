@@ -29,6 +29,7 @@
     <module>apps/recursos-api</module>
     <module>apps/comite-api</module>
     <module>apps/relatorios-api</module>
+    <module>apps/api-gateway</module>
     <module>apps/notification-worker</module>
 </modules>
 

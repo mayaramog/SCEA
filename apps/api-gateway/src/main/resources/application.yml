@@ -1,0 +1,39 @@
+server:
+  port: 8080
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://${EUREKA_HOST:localhost}:8761/eureka/
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      routes:
+        - id: auth-api
+          uri: lb://AUTH-API
+          predicates:
+            - Path=/auth/**
+        - id: protocolos-api
+          uri: lb://PROTOCOLOS-API
+          predicates:
+            - Path=/protocolos/**
+        - id: recursos-api
+          uri: lb://RECURSOS-API
+          predicates:
+            - Path=/recursos/**
+        - id: comite-api
+          uri: lb://COMITE-API
+          predicates:
+            - Path=/comite/**
+        - id: relatorios-api
+          uri: lb://RELATORIOS-API
+          predicates:
+            - Path=/relatorios/**
+
+logging:
+  level:
+    org.springframework.cloud.gateway: TRACE
+

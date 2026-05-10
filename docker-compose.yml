@@ -1,0 +1,135 @@
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: scea
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: '1234'
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:4-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_running"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  eureka-server:
+    build:
+      context: .
+      args:
+        JAR_FILE: apps/eureka-server/target/*.jar
+    ports:
+      - "8761:8761"
+    environment:
+      EUREKA_HOST: eureka-server
+
+  auth-api:
+    build:
+      context: .
+      args:
+        JAR_FILE: apps/auth-api/target/*.jar
+    ports:
+      - "8081:8081"
+    environment:
+      DB_HOST: db
+      EUREKA_HOST: eureka-server
+    depends_on:
+      db:
+        condition: service_healthy
+
+  protocolos-api:
+    build:
+      context: .
+      args:
+        JAR_FILE: apps/protocolos-api/target/*.jar
+    ports:
+      - "8082:8082"
+    environment:
+      DB_HOST: db
+      EUREKA_HOST: eureka-server
+      RABBIT_HOST: rabbitmq
+    depends_on:
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  recursos-api:
+    build:
+      context: .
+      args:
+        JAR_FILE: apps/recursos-api/target/*.jar
+    ports:
+      - "8083:8083"
+    environment:
+      DB_HOST: db
+      EUREKA_HOST: eureka-server
+    depends_on:
+      db:
+        condition: service_healthy
+
+  comite-api:
+    build:
+      context: .
+      args:
+        JAR_FILE: apps/comite-api/target/*.jar
+    ports:
+      - "8084:8084"
+    environment:
+      DB_HOST: db
+      EUREKA_HOST: eureka-server
+    depends_on:
+      db:
+        condition: service_healthy
+
+  relatorios-api:
+    build:
+      context: .
+      args:
+        JAR_FILE: apps/relatorios-api/target/*.jar
+    ports:
+      - "8085:8085"
+    environment:
+      DB_HOST: db
+      EUREKA_HOST: eureka-server
+      RABBIT_HOST: rabbitmq
+    depends_on:
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  notification-worker:
+    build:
+      context: .
+      args:
+        JAR_FILE: apps/notification-worker/target/*.jar
+    environment:
+      EUREKA_HOST: eureka-server
+      RABBIT_HOST: rabbitmq
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  api-gateway:
+    build:
+      context: .
+      args:
+        JAR_FILE: apps/api-gateway/target/*.jar
+    ports:
+      - "8080:8080"
+    environment:
+      EUREKA_HOST: eureka-server
+    depends_on:
+      - eureka-server
