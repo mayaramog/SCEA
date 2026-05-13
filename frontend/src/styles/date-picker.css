@@ -1,0 +1,32 @@
+/* Custom styles for react-day-picker used in DatePicker component */
+.rdp-custom .rdp-month {
+  padding: 0.3rem;
+}
+.rdp-custom .rdp-table {
+  border-collapse: separate;
+  border-spacing: 0.4rem;
+}
+.rdp-custom .rdp-head_cell,
+.rdp-custom .rdp-day {
+  padding: 0.3rem 0.25rem;
+  min-width: 1.4rem;
+  min-height: 1.4rem;
+}
+.rdp-custom .rdp-day {
+  border-radius: 0.3rem;
+}
+.rdp-custom .rdp-nav {
+  margin-bottom: 0.15rem;
+}
+.rdp-custom .rdp-caption {
+  margin-bottom: 0.15rem;
+}
+.rdp-custom .rdp-day_selected {
+  padding: 0.25rem;
+  border-radius: 0.6rem;
+}
+
+/* Ensure the calendar doesn't overflow its container on small screens */
+.rdp-custom {
+  max-width: 100%;
+}
