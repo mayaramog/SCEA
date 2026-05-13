@@ -41,6 +41,7 @@ export interface Protocolo {
   id: string;
   docenteId: string;
   docenteNome: string;
+  titulo: string;
   justificativa: string;
   resumoPt: string;
   resumoEn: string;

@@ -36,8 +36,9 @@ export function ProtocoloWizard({ onSubmit, onCancel }: ProtocoloWizardProps) {
   const [bioterioId, setBioterioId] = useState('');
 
   useEffect(() => {
-    api.fetchEspecies().then(setEspeciesList);
-    api.fetchBioterios().then(setBioteriosList);
+    // Carregar e filtrar apenas recursos ATIVOS
+    api.fetchEspecies().then(list => setEspeciesList(list.filter(e => e.ativo)));
+    api.fetchBioterios().then(list => setBioteriosList(list.filter(b => b.ativo)));
   }, []);
 
   const validateStep1 = () => {

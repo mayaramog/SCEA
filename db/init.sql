@@ -356,7 +356,8 @@ ALTER TABLE scea.usuario_papel OWNER TO postgres;
 --
 
 COPY scea.bioterio (id, codigo, nome, descricao, ativo, criado_em) FROM stdin;
-00000000-0000-0000-0000-000000000031	BIO-01	Bioterio Central	Bloco A	t	2026-04-25 20:37:08.839486-03
+00000000-0000-0000-0000-000000000031	BIO-CENTRAL	Biotério Central de Roedores	Unidade principal de criação e manutenção	t	2026-04-25 20:37:08.839486-03
+00000000-0000-0000-0000-000000000032	LAB-NEURO	Laboratório de Neurociências	Unidade experimental avançada	t	2026-05-10 10:00:00.000000-03
 \.
 
 
@@ -365,8 +366,9 @@ COPY scea.bioterio (id, codigo, nome, descricao, ativo, criado_em) FROM stdin;
 --
 
 COPY scea.especie (id, nome, codigo, ativo, criado_em) FROM stdin;
-00000000-0000-0000-0000-000000000021	Camundongo	Mus musculus	t	2026-04-25 20:37:08.838192-03
-00000000-0000-0000-0000-000000000022	Rato	Rattus norvegicus	t	2026-04-25 20:37:08.838192-03
+00000000-0000-0000-0000-000000000021	Rato Wistar	Rattus norvegicus	t	2026-04-25 20:37:08.838192-03
+00000000-0000-0000-0000-000000000022	Camundongo Balb/c	Mus musculus	t	2026-04-25 20:37:08.838192-03
+00000000-0000-0000-0000-000000000023	Peixe-zebra	Danio rerio	t	2026-05-10 10:00:00.000000-03
 \.
 
 
@@ -397,12 +399,9 @@ COPY scea.papel (id, codigo, nome, descricao, criado_em) FROM stdin;
 --
 
 COPY scea.protocolo (id, codigo_protocolo, titulo, objetivo, resumo, id_usuario_submetedor, nome_pesquisador_responsavel, nome_departamento, versao_atual, estado, data_submissao, data_inicio_planejada, data_termino_planejada, quantidade_animais_aprovada, observacoes, criado_em, atualizado_em, arquivado_em, justificativa) FROM stdin;
-51bf5a61-4d96-4529-be6c-eaa2aa07b217	P-2026-B541DF85	Estudo de Analgesia em Roedores	Avaliar eficácia de novo composto	Resumo em PT	f2c8d169-5826-4c5a-a9d2-5f2f2ae92d0c	test@scea.local	\N	1	submetido	2026-05-09	2026-06-01	2026-06-30	0	\N	2026-05-09 22:18:46.488012-03	2026-05-09 22:18:46.488012-03	\N	Necessidade de alternativas aos opioides
-a336dc4d-7aa8-45f8-ac57-1d823f5160e3	P-2026-6A3A8181	Estudo de Analgesia em Roedores	Avaliar eficácia de novo composto	Resumo em PT	f2c8d169-5826-4c5a-a9d2-5f2f2ae92d0c	test@scea.local	\N	1	pendencia_solicitada	2026-05-09	2026-06-01	2026-06-30	0	\N	2026-05-09 22:22:18.894493-03	2026-05-09 22:28:56.788932-03	\N	Necessidade de alternativas aos opioides
-ae6b5f23-fd47-4a67-9ac2-c956b757c193	P-2026-7DACFE4D	Estudo de Analgesia em Roedores	Avaliar eficácia de novo composto	Resumo em PT	f2c8d169-5826-4c5a-a9d2-5f2f2ae92d0c	test@scea.local	\N	1	aprovado	2026-05-09	2026-06-01	2026-06-30	15	\N	2026-05-09 23:01:09.023995-03	2026-05-09 23:03:53.704831-03	\N	Necessidade de alternativas aos opioides
-ce900c71-a55d-4454-9f30-597b878f0199	P-2026-83B69EEC	string	string	string	550e8400-e29b-41d4-a716-446655440001	docente@scea.local	\N	1	aprovado	2026-05-09	2027-02-09	2027-02-12	1073741824	\N	2026-05-09 23:37:55.541795-03	2026-05-09 23:55:47.776522-03	\N	string
-236918af-6077-46af-b9d9-0cbe80ae5192	P-2026-2978E3A0	string	string	string	550e8400-e29b-41d4-a716-446655440001	docente@scea.local	\N	1	aprovado	2026-05-09	2027-01-01	2027-01-12	1073741824	\N	2026-05-09 23:35:44.693373-03	2026-05-10 00:08:16.94313-03	\N	string
-3c99d787-e670-43f2-a68f-dca6b8763e7c	P-2026-523348D8	Teste relatorio	relatorio	string	550e8400-e29b-41d4-a716-446655440001	docente@scea.local	\N	1	aprovado	2026-05-10	2026-05-12	2026-05-15	1073741824	\N	2026-05-10 00:40:16.440945-03	2026-05-10 00:40:48.65216-03	\N	string
+51bf5a61-4d96-4529-be6c-eaa2aa07b217	P-2026-B541DF85	Efeito neuroprotetor da curcumina em modelos de isquemia cerebral	Avaliar a redução de danos neuronais pós-isquemia	Estudo experimental utilizando indução por oclusão da artéria cerebral média.	f2c8d169-5826-4c5a-a9d2-5f2f2ae92d0c	Dr. Ricardo Pesquisador	Departamento de Farmacologia	1	submetido	2026-05-09	2026-06-01	2026-12-30	0	\N	2026-05-09 22:18:46.488012-03	2026-05-09 22:18:46.488012-03	\N	Necessidade de investigar alternativas naturais aos neuroprotetores sintéticos.
+a336dc4d-7aa8-45f8-ac57-1d823f5160e3	P-2026-6A3A8181	Avaliação da toxicidade aguda de nanopartículas de prata em peixes-zebra	Determinar a DL50 e alterações comportamentais	Análise de sobrevivência e natação em Danio rerio expostos a diferentes concentrações.	f2c8d169-5826-4c5a-a9d2-5f2f2ae92d0c	Dr. Ricardo Pesquisador	Centro de Nanotecnologia	1	pendencia_solicitada	2026-05-09	2026-06-01	2026-08-30	0	\N	2026-05-09 22:22:18.894493-03	2026-05-09 22:28:56.788932-03	\N	Nanopartículas são amplamente utilizadas e seu impacto ambiental em ambientes aquáticos é pouco conhecido.
+ae6b5f23-fd47-4a67-9ac2-c956b757c193	P-2026-7DACFE4D	Modelagem de diabetes tipo 1 em camundongos Balb/c	Validar novo protocolo de indução por estreptozotocina	Otimização de doses para reduzir mortalidade mantendo hiperglicemia estável.	f2c8d169-5826-4c5a-a9d2-5f2f2ae92d0c	Dr. Ricardo Pesquisador	Lab de Fisiologia	1	aprovado	2026-05-09	2026-06-01	2026-10-30	15	\N	2026-05-09 23:01:09.023995-03	2026-05-09 23:03:53.704831-03	\N	Modelos atuais apresentam alta variabilidade; o refinamento reduzirá o número de animais utilizados no futuro.
 \.
 
 
@@ -411,10 +410,7 @@ ce900c71-a55d-4454-9f30-597b878f0199	P-2026-83B69EEC	string	string	string	550e84
 --
 
 COPY scea.protocolo_decisao (id, protocolo_id, reuniao_id, tipo_decisao, decidido_por_usuario_id, decidido_em, valido_ate, fundamentacao, criado_em) FROM stdin;
-b1245d27-0870-45d6-be01-d60082da6815	ae6b5f23-fd47-4a67-9ac2-c956b757c193	550e8400-e29b-41d4-a716-446655440088	aprovado	f2c8d169-5826-4c5a-a9d2-5f2f2ae92d0c	2026-05-09 23:03:53.705541-03	2027-12-31 20:59:59-03	Aprovado em reunião ordinária do comitê.	2026-05-09 23:03:53.705541-03
-3da51bb8-81fb-4493-b765-bad1011f2d56	ce900c71-a55d-4454-9f30-597b878f0199	550e8400-e29b-41d4-a716-446655440088	aprovado	550e8400-e29b-41d4-a716-446655440005	2026-05-09 23:55:47.777107-03	2026-05-09 23:54:46.852-03	string	2026-05-09 23:55:47.777107-03
-baf4721b-4fcd-4cb8-b837-4e7909bf7f61	236918af-6077-46af-b9d9-0cbe80ae5192	550e8400-e29b-41d4-a716-446655440088	aprovado	550e8400-e29b-41d4-a716-446655440005	2026-05-10 00:08:16.975-03	2026-05-09 23:54:46.852-03	string	2026-05-10 00:08:16.975-03
-64b08e12-9fe7-4058-90aa-a0bbe745c5af	3c99d787-e670-43f2-a68f-dca6b8763e7c	550e8400-e29b-41d4-a716-446655440088	aprovado	550e8400-e29b-41d4-a716-446655440005	2026-05-10 00:40:48.652123-03	2026-05-09 23:54:46.852-03	string	2026-05-10 00:40:48.652123-03
+b1245d27-0870-45d6-be01-d60082da6815	ae6b5f23-fd47-4a67-9ac2-c956b757c193	550e8400-e29b-41d4-a716-446655440088	aprovado	550e8400-e29b-41d4-a716-446655440005	2026-05-09 23:03:53.705541-03	2027-12-31 20:59:59-03	Projeto bem estruturado, segue os princípios dos 3Rs e apresenta relevância acadêmica.	2026-05-09 23:03:53.705541-03
 \.
 
 
@@ -423,7 +419,7 @@ baf4721b-4fcd-4cb8-b837-4e7909bf7f61	236918af-6077-46af-b9d9-0cbe80ae5192	550e84
 --
 
 COPY scea.protocolo_designacao_parecer (id, protocolo_id, usuario_parecerista_id, atribuido_por_usuario_id, estado_designacao, atribuido_em, prazo_em) FROM stdin;
-d0897862-c6e1-4add-8035-07114fa7384d	a336dc4d-7aa8-45f8-ac57-1d823f5160e3	f2c8d169-5826-4c5a-a9d2-5f2f2ae92d0c	f2c8d169-5826-4c5a-a9d2-5f2f2ae92d0c	concluido	2026-05-09 22:24:23.836468-03	2026-06-15 20:59:59-03
+d0897862-c6e1-4add-8035-07114fa7384d	ae6b5f23-fd47-4a67-9ac2-c956b757c193	550e8400-e29b-41d4-a716-446655440002	550e8400-e29b-41d4-a716-446655440000	concluido	2026-05-09 22:24:23.836468-03	2026-06-15 20:59:59-03
 \.
 
 
@@ -432,12 +428,9 @@ d0897862-c6e1-4add-8035-07114fa7384d	a336dc4d-7aa8-45f8-ac57-1d823f5160e3	f2c8d1
 --
 
 COPY scea.protocolo_estoque_biologico (id, protocolo_id, especie_id, bioterio_id, nome_linhagem, sexo, quantidade_planejada, justificativa, criado_em) FROM stdin;
-752a35d2-aff5-4038-bd83-4d5c168236b1	51bf5a61-4d96-4529-be6c-eaa2aa07b217	00000000-0000-0000-0000-000000000021	00000000-0000-0000-0000-000000000031	Wistar	macho	15	Grupo controle e experimental	2026-05-09 22:18:46.488012-03
-fb489d03-283a-48c3-b3bf-8cd288533a71	a336dc4d-7aa8-45f8-ac57-1d823f5160e3	00000000-0000-0000-0000-000000000021	00000000-0000-0000-0000-000000000031	Wistar	macho	15	Grupo controle e experimental	2026-05-09 22:22:18.894493-03
-5709307b-eae0-4d99-b4e3-a2d4023a01ea	ae6b5f23-fd47-4a67-9ac2-c956b757c193	00000000-0000-0000-0000-000000000021	00000000-0000-0000-0000-000000000031	Wistar	macho	15	Grupo controle e experimental	2026-05-09 23:01:09.023995-03
-b37d3005-4463-4ca1-9db8-e3d07fa715da	236918af-6077-46af-b9d9-0cbe80ae5192	00000000-0000-0000-0000-000000000021	00000000-0000-0000-0000-000000000031	string	macho	32	string	2026-05-09 23:35:44.693373-03
-b3e1de85-ec9d-4d7a-a0be-492b66ef1f70	ce900c71-a55d-4454-9f30-597b878f0199	00000000-0000-0000-0000-000000000021	00000000-0000-0000-0000-000000000031	string	macho	32	string	2026-05-09 23:37:55.541795-03
-12d97671-9f2f-4d89-af25-2046e76fe73b	3c99d787-e670-43f2-a68f-dca6b8763e7c	00000000-0000-0000-0000-000000000021	00000000-0000-0000-0000-000000000031	string	macho	32	string	2026-05-10 00:40:16.440945-03
+752a35d2-aff5-4038-bd83-4d5c168236b1	51bf5a61-4d96-4529-be6c-eaa2aa07b217	00000000-0000-0000-0000-000000000021	00000000-0000-0000-0000-000000000031	Wistar	macho	12	Grupo controle e experimental	2026-05-09 22:18:46.488012-03
+fb489d03-283a-48c3-b3bf-8cd288533a71	a336dc4d-7aa8-45f8-ac57-1d823f5160e3	00000000-0000-0000-0000-000000000023	00000000-0000-0000-0000-000000000032	Wild-type	misto	50	Ensaio de toxicidade	2026-05-09 22:22:18.894493-03
+5709307b-eae0-4d99-b4e3-a2d4023a01ea	ae6b5f23-fd47-4a67-9ac2-c956b757c193	00000000-0000-0000-0000-000000000022	00000000-0000-0000-0000-000000000031	Balb/c	femea	15	Indução de diabetes	2026-05-09 23:01:09.023995-03
 \.
 
 
@@ -462,7 +455,7 @@ COPY scea.protocolo_membro_equipe (id, protocolo_id, nome_completo, email, papel
 --
 
 COPY scea.protocolo_parecer (id, designacao_id, recomendacao, resumo_tecnico, consideracoes_eticas, submetido_em) FROM stdin;
-d08e663c-af4e-4b2e-9e43-153b045a30d3	d0897862-c6e1-4add-8035-07114fa7384d	uso_recomendado	Protocolo validado e aprovado tecnicamente para execução imediata.	O bem-estar animal está garantido conforme diretrizes do CEUA.	2026-05-09 22:28:56.791362-03
+d08e663c-af4e-4b2e-9e43-153b045a30d3	d0897862-c6e1-4add-8035-07114fa7384d	uso_recomendado	Metodologia adequada para os objetivos propostos. Desenho experimental robusto.	O controle de dor e o método de eutanásia estão em conformidade com as normas nacionais.	2026-05-09 22:28:56.791362-03
 \.
 
 
@@ -471,9 +464,6 @@ d08e663c-af4e-4b2e-9e43-153b045a30d3	d0897862-c6e1-4add-8035-07114fa7384d	uso_re
 --
 
 COPY scea.relatorio (id, protocolo_id, tipo_documento, caminho_armazenamento, nome_arquivo_original, mime_type, enviado_por_usuario_id, enviado_em) FROM stdin;
-0f439c3a-de73-499d-877d-b7671bd73639	236918af-6077-46af-b9d9-0cbe80ae5192	certificado_aprovacao	/storage/certificados/certificado_236918af-6077-46af-b9d9-0cbe80ae5192.pdf	certificado_236918af-6077-46af-b9d9-0cbe80ae5192.pdf	application/pdf	\N	2026-05-10 00:08:17.086767-03
-67c7cd6e-867c-455a-8f5d-34fecb8e69e6	ae6b5f23-fd47-4a67-9ac2-c956b757c193	certificado_aprovacao	C:/Users/Gustavo Cortez/Documents/Faculdade/QS/SCEA/storage/certificados/certificado_ae6b5f23-fd47-4a67-9ac2-c956b757c193.pdf	certificado_ae6b5f23-fd47-4a67-9ac2-c956b757c193.pdf	application/pdf	550e8400-e29b-41d4-a716-446655440000	2026-05-10 00:39:02.232821-03
-fb4b98d8-35aa-4f9e-aaca-3169052ad763	3c99d787-e670-43f2-a68f-dca6b8763e7c	certificado_aprovacao	C:/Users/Gustavo Cortez/Documents/Faculdade/QS/SCEA/storage/certificados/certificado_3c99d787-e670-43f2-a68f-dca6b8763e7c.pdf	certificado_3c99d787-e670-43f2-a68f-dca6b8763e7c.pdf	application/pdf	550e8400-e29b-41d4-a716-446655440000	2026-05-10 00:40:48.658168-03
 \.
 
 
@@ -482,7 +472,7 @@ fb4b98d8-35aa-4f9e-aaca-3169052ad763	3c99d787-e670-43f2-a68f-dca6b8763e7c	certif
 --
 
 COPY scea.reuniao_comite (id, codigo_reuniao, agendada_para, descricao_local, estado, observacoes, criado_em) FROM stdin;
-550e8400-e29b-41d4-a716-446655440088	RC-2026-001	2026-05-15 11:00:00-03	\N	agendada	\N	2026-05-09 22:53:46.798485-03
+550e8400-e29b-41d4-a716-446655440088	RC-2026-MAIO	2026-05-15 14:00:00-03	Sala de Reuniões CEUA - Prédio Central	agendada	Reunião mensal ordinária para julgamento de protocolos de pesquisa.	2026-05-09 22:53:46.798485-03
 \.
 
 
@@ -500,11 +490,12 @@ COPY scea.reuniao_comite_protocolo (reuniao_id, protocolo_id, ordem_pauta, usuar
 --
 
 COPY scea.usuario (id, id_autenticacao_externa, nome_completo, email, esta_ativo, criado_em, atualizado_em, password_hash) FROM stdin;
-f2c8d169-5826-4c5a-a9d2-5f2f2ae92d0c	\N	Usuario Teste	test@scea.local	t	2026-05-09 22:18:25.854395-03	2026-05-09 22:18:25.854395-03	$2a$10$V7ftpFeQ9G6o6yOk5dpdf.YAgzq8Ttr/CA2EmM1nP4ohm8/kFVCQK
-550e8400-e29b-41d4-a716-446655440000	\N	Admin SCEA	admin@scea.local	t	2026-05-09 22:09:31.21302-03	2026-05-09 22:38:27.079966-03	$2a$10$V7ftpFeQ9G6o6yOk5dpdf.YAgzq8Ttr/CA2EmM1nP4ohm8/kFVCQK
-550e8400-e29b-41d4-a716-446655440001	\N	Docente Silva	docente@scea.local	t	2026-05-09 22:09:31.21302-03	2026-05-09 22:38:27.080956-03	$2a$10$V7ftpFeQ9G6o6yOk5dpdf.YAgzq8Ttr/CA2EmM1nP4ohm8/kFVCQK
-550e8400-e29b-41d4-a716-446655440002	\N	Parecerista Rocha	parecerista@scea.local	t	2026-05-09 22:09:31.21302-03	2026-05-09 22:38:27.08141-03	$2a$10$V7ftpFeQ9G6o6yOk5dpdf.YAgzq8Ttr/CA2EmM1nP4ohm8/kFVCQK
-550e8400-e29b-41d4-a716-446655440005	\N	Presidente	presidente@scea.local	t	2026-05-09 22:09:31.21302-03	2026-05-09 22:38:27.079966-03	$2a$10$V7ftpFeQ9G6o6yOk5dpdf.YAgzq8Ttr/CA2EmM1nP4ohm8/kFVCQK
+550e8400-e29b-41d4-a716-446655440000	\N	Administrador Central	admin@scea.local	t	2026-05-09 22:09:31.21302-03	2026-05-09 22:38:27.079966-03	$2a$10$V7ftpFeQ9G6o6yOk5dpdf.YAgzq8Ttr/CA2EmM1nP4ohm8/kFVCQK
+550e8400-e29b-41d4-a716-446655440001	\N	Dr. Ricardo Pesquisador	docente@scea.local	t	2026-05-09 22:09:31.21302-03	2026-05-09 22:38:27.080956-03	$2a$10$V7ftpFeQ9G6o6yOk5dpdf.YAgzq8Ttr/CA2EmM1nP4ohm8/kFVCQK
+550e8400-e29b-41d4-a716-446655440002	\N	Maria Parecerista	parecerista@scea.local	t	2026-05-09 22:09:31.21302-03	2026-05-09 22:38:27.08141-03	$2a$10$V7ftpFeQ9G6o6yOk5dpdf.YAgzq8Ttr/CA2EmM1nP4ohm8/kFVCQK
+550e8400-e29b-41d4-a716-446655440005	\N	Dra. Helena Presidente	presidente@scea.local	t	2026-05-09 22:09:31.21302-03	2026-05-09 22:38:27.079966-03	$2a$10$V7ftpFeQ9G6o6yOk5dpdf.YAgzq8Ttr/CA2EmM1nP4ohm8/kFVCQK
+88dfc6af-2144-4f18-a96e-a6778612d3f4	\N	Maria Secretaria	secretaria@scea.local	t	2026-05-10 02:00:00.000000-03	2026-05-10 02:00:00.000000-03	$2a$10$V7ftpFeQ9G6o6yOk5dpdf.YAgzq8Ttr/CA2EmM1nP4ohm8/kFVCQK
+f2c8d169-5826-4c5a-a9d2-5f2f2ae92d0c	\N	Usuário de Teste (Full)	test@scea.local	t	2026-05-09 22:18:25.854395-03	2026-05-09 22:18:25.854395-03	$2a$10$V7ftpFeQ9G6o6yOk5dpdf.YAgzq8Ttr/CA2EmM1nP4ohm8/kFVCQK
 \.
 
 

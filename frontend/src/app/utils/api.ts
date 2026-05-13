@@ -12,14 +12,15 @@ const getHeaders = () => {
 
 export interface Especie {
   id: string;
-  codigo: string;
   nome: string;
+  ativo: boolean;
 }
 
 export interface Bioterio {
   id: string;
   codigo: string;
   nome: string;
+  ativo: boolean;
 }
 
 export interface Reuniao {
@@ -109,6 +110,7 @@ export const api = {
       id: p.id,
       docenteId: p.idUsuarioSubmetedor,
       docenteNome: p.nomePesquisadorResponsavel,
+      titulo: p.titulo,
       justificativa: p.justificativa,
       resumoPt: p.resumo,
       resumoEn: p.resumo,
@@ -264,6 +266,38 @@ export const api = {
       body: JSON.stringify({ codigosPapeis: papeis }),
     });
     if (!resp.ok) throw new Error('Falha ao atualizar papéis');
+  },
+
+  async desativarUsuario(userId: string): Promise<void> {
+    const resp = await fetch(`${API_BASE_URL}/auth/usuarios/${userId}`, {
+      method: 'DELETE',
+      headers: getHeaders(),
+    });
+    if (!resp.ok) throw new Error('Falha ao alterar status do usuário');
+  },
+
+  async desativarEspecie(id: string): Promise<void> {
+    const resp = await fetch(`${API_BASE_URL}/recursos/especies/${id}`, {
+      method: 'DELETE',
+      headers: getHeaders(),
+    });
+    if (!resp.ok) throw new Error('Falha ao alterar status da espécie');
+  },
+
+  async desativarBioterio(id: string): Promise<void> {
+    const resp = await fetch(`${API_BASE_URL}/recursos/bioterios/${id}`, {
+      method: 'DELETE',
+      headers: getHeaders(),
+    });
+    if (!resp.ok) throw new Error('Falha ao alterar status do biotério');
+  },
+
+  async arquivarProtocolo(id: string): Promise<void> {
+    const resp = await fetch(`${API_BASE_URL}/protocolos/${id}`, {
+      method: 'DELETE',
+      headers: getHeaders(),
+    });
+    if (!resp.ok) throw new Error('Falha ao arquivar protocolo');
   },
 
   async designarParecerista(protocoloId: string, pareceristaId: string): Promise<void> {

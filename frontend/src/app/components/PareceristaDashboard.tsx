@@ -92,6 +92,7 @@ export function PareceristaDashboard({ user, protocolos, onSubmitParecer }: Pare
               <thead className="bg-slate-50 border-b">
                 <tr>
                   <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Protocolo</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Título</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Pesquisador</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Estado Atual</th>
                 </tr>
@@ -100,6 +101,7 @@ export function PareceristaDashboard({ user, protocolos, onSubmitParecer }: Pare
                 {protocolosConcluidos.map((p) => (
                   <tr key={p.id} className="hover:bg-slate-50 transition-colors">
                     <td className="px-6 py-4 font-medium text-slate-900">{p.id.substring(0,8)}...</td>
+                    <td className="px-6 py-4 text-sm text-slate-600">{p.titulo || 'Sem Título'}</td>
                     <td className="px-6 py-4 text-sm text-slate-600">{p.docenteNome}</td>
                     <td className="px-6 py-4">
                       <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">

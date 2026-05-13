@@ -14,6 +14,8 @@ export function PresidenteDashboard({ protocolos, onDeliberar }: PresidenteDashb
   const [selectedReuniao, setSelectedReuniao] = useState<Reuniao | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedProtocolo, setSelectedProtocolo] = useState<Protocolo | null>(null);
+  const [justificativaDeliberacao, setJustificativaDeliberacao] = useState('');
+  const [deliberacaoError, setDeliberacaoError] = useState('');
   
   // New Meeting Fields
   const [newCodigo, setNewCodigo] = useState('');
@@ -241,25 +243,36 @@ export function PresidenteDashboard({ protocolos, onDeliberar }: PresidenteDashb
               <p className="text-slate-600 mb-6">Registro da decisão final em ata para a {selectedReuniao?.codigoReuniao}.</p>
               
               <div className="space-y-4">
-                <textarea 
+                <textarea
                   id="justificativa-deliberacao"
-                  className="w-full border rounded-xl p-4 h-32" 
+                  value={justificativaDeliberacao}
+                  onChange={(e) => { setJustificativaDeliberacao(e.target.value); setDeliberacaoError(''); }}
+                  className="w-full border rounded-xl p-4 h-32"
                   placeholder="Fundamentação da decisão..."
-                ></textarea>
+                />
+                {deliberacaoError && (
+                  <div className="text-sm text-red-600 font-medium">{deliberacaoError}</div>
+                )}
                 <div className="flex gap-4">
                    <button 
                     onClick={() => {
-                      const msg = (document.getElementById('justificativa-deliberacao') as HTMLTextAreaElement).value;
+                      const msg = justificativaDeliberacao.trim();
+                      if (!msg) { setDeliberacaoError('Informe a justificativa da deliberação.'); return; }
                       onDeliberar(selectedProtocolo.id, msg, 'APROVADO', selectedReuniao!.id);
                       setSelectedProtocolo(null);
+                      setJustificativaDeliberacao('');
+                      setDeliberacaoError('');
                     }}
                     className="flex-1 bg-green-600 text-white py-3 rounded-xl font-bold"
                    >Aprovar</button>
                    <button 
                     onClick={() => {
-                      const msg = (document.getElementById('justificativa-deliberacao') as HTMLTextAreaElement).value;
+                      const msg = justificativaDeliberacao.trim();
+                      if (!msg) { setDeliberacaoError('Informe a justificativa da deliberação.'); return; }
                       onDeliberar(selectedProtocolo.id, msg, 'REPROVADO', selectedReuniao!.id);
                       setSelectedProtocolo(null);
+                      setJustificativaDeliberacao('');
+                      setDeliberacaoError('');
                     }}
                     className="flex-1 bg-red-600 text-white py-3 rounded-xl font-bold"
                    >Reprovar</button>

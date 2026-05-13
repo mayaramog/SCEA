@@ -54,11 +54,6 @@ export function Header({ user, onLogout, activeRole }: HeaderProps) {
 
           <div className="flex items-center gap-4">
             {/* View Mode Badge */}
-            <div className="hidden md:flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-700 rounded-full border border-blue-100">
-               <Shield className="w-3 h-3" />
-               <span className="text-[10px] font-bold uppercase tracking-wider">Modo: {getRoleName(activeRole)}</span>
-            </div>
-
             <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-lg border border-slate-200">
               <UserIcon className="w-4 h-4 text-slate-600" aria-hidden="true" />
               <div className="text-sm">

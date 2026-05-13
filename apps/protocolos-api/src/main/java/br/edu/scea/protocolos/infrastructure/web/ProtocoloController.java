@@ -22,9 +22,11 @@ import java.util.UUID;
 public class ProtocoloController {
 
     private final ProtocoloService protocoloService;
+    private final ProtocoloRepository protocoloRepository;
 
-    public ProtocoloController(ProtocoloService protocoloService) {
+    public ProtocoloController(ProtocoloService protocoloService, ProtocoloRepository protocoloRepository) {
         this.protocoloService = protocoloService;
+        this.protocoloRepository = protocoloRepository;
     }
 
     @PostMapping
@@ -77,6 +79,16 @@ public class ProtocoloController {
             @PathVariable("id") UUID id,
             @RequestBody @Valid br.edu.scea.shared.dto.protocolo.DeliberacaoRequest request) {
         protocoloService.deliberar(id, request);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Arquivar (soft-delete) um protocolo")
+    public ResponseEntity<Void> arquivar(@PathVariable("id") UUID id) {
+        ProtocoloEntity protocolo = protocoloRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Protocolo não encontrado"));
+        protocolo.setEstado(br.edu.scea.shared.enums.EstadoProtocolo.ARQUIVADO);
+        protocoloRepository.save(protocolo);
         return ResponseEntity.ok().build();
     }
 

@@ -1,14 +1,16 @@
 import { useState } from 'react';
 import { User, Protocolo } from '../App';
-import { FileText, Plus, Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { FileText, Plus, Clock, CheckCircle, XCircle, AlertCircle, Archive } from 'lucide-react';
+import api from '../utils/api';
 
 interface DocenteDashboardProps {
   user: User;
   protocolos: Protocolo[];
   onNovoProtocolo: () => void;
+  onRefresh: () => void;
 }
 
-export function DocenteDashboard({ user, protocolos, onNovoProtocolo }: DocenteDashboardProps) {
+export function DocenteDashboard({ user, protocolos, onNovoProtocolo, onRefresh }: DocenteDashboardProps) {
   const getEstadoIcon = (estado: string) => {
     switch (estado) {
       case 'aguardando_envio_parecer':
@@ -21,6 +23,8 @@ export function DocenteDashboard({ user, protocolos, onNovoProtocolo }: DocenteD
         return <CheckCircle className="w-5 h-5 text-green-600" aria-hidden="true" />;
       case 'uso_reprovado':
         return <XCircle className="w-5 h-5 text-red-600" aria-hidden="true" />;
+      case 'arquivado':
+        return <Archive className="w-5 h-5 text-slate-400" aria-hidden="true" />;
       default:
         return null;
     }
@@ -33,12 +37,22 @@ export function DocenteDashboard({ user, protocolos, onNovoProtocolo }: DocenteD
       aguardando_deliberacao: 'Aguardando deliberação',
       uso_aprovado: 'Uso aprovado',
       uso_reprovado: 'Uso reprovado',
+      arquivado: 'Arquivado'
     };
     return estados[estado as keyof typeof estados] || estado;
   };
 
-  // Filtrar apenas protocolos onde este usuário é o submetedor
-  const meusProtocolos = protocolos.filter(p => p.docenteId === user.matricula);
+  // Filtrar apenas protocolos onde este usuário é o submetedor e não estão arquivados (a menos que queiramos ver histórico)
+  const meusProtocolos = protocolos.filter(p => p.docenteId === user.matricula && p.estado !== 'arquivado');
+  const meusArquivados = protocolos.filter(p => p.docenteId === user.matricula && p.estado === 'arquivado');
+
+  const handleArquivar = async (id: string) => {
+    if (!confirm('Deseja realmente arquivar este protocolo? Ele não poderá mais ser editado.')) return;
+    try {
+        await api.arquivarProtocolo(id);
+        onRefresh();
+    } catch (e: any) { alert(e.message); }
+  };
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -114,10 +128,11 @@ export function DocenteDashboard({ user, protocolos, onNovoProtocolo }: DocenteD
                 <thead className="bg-slate-50 border-b">
                   <tr>
                     <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Protocolo</th>
+                    <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Título</th>
                     <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Submissão</th>
                     <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Período</th>
-                    <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Animais</th>
                     <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Estado</th>
+                    <th scope="col" className="px-6 py-4 text-right"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -127,20 +142,12 @@ export function DocenteDashboard({ user, protocolos, onNovoProtocolo }: DocenteD
                         <div className="font-bold text-slate-900">{protocolo.id.substring(0,8)}...</div>
                         <div className="text-xs text-slate-500 line-clamp-1">{protocolo.justificativa}</div>
                       </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">{protocolo.titulo || 'Sem Título'}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
                         {new Date(protocolo.dataCriacao).toLocaleDateString('pt-BR')}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
                         {new Date(protocolo.dataInicio).toLocaleDateString('pt-BR')} - {new Date(protocolo.dataTermino).toLocaleDateString('pt-BR')}
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="text-xs text-slate-600">
-                          {protocolo.alocacoes.map((a) => (
-                            <div key={a.id} className="bg-slate-100 px-2 py-0.5 rounded mt-1 w-fit">
-                              {a.quantidade} {a.especie}
-                            </div>
-                          ))}
-                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-2">
@@ -150,6 +157,15 @@ export function DocenteDashboard({ user, protocolos, onNovoProtocolo }: DocenteD
                           </span>
                         </div>
                       </td>
+                      <td className="px-6 py-4 text-right">
+                         <button 
+                            onClick={() => handleArquivar(protocolo.id)}
+                            className="text-slate-400 hover:text-red-500 transition-colors"
+                            title="Arquivar Protocolo"
+                         >
+                            <Archive className="w-5 h-5" />
+                         </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -158,6 +174,29 @@ export function DocenteDashboard({ user, protocolos, onNovoProtocolo }: DocenteD
           </div>
         )}
       </section>
+
+      {/* Histórico de Arquivados (Opcional) */}
+      {meusArquivados.length > 0 && (
+          <section>
+              <h3 className="text-xl font-bold text-slate-400 mb-4 flex items-center gap-2">
+                <Archive className="w-5 h-5" />
+                Protocolos Arquivados
+              </h3>
+              <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm opacity-60">
+                 <table className="w-full text-sm">
+                    <tbody className="divide-y divide-slate-50">
+                        {meusArquivados.map(p => (
+                            <tr key={p.id}>
+                                <td className="px-6 py-3 font-medium">{p.id.substring(0,8)}...</td>
+                                <td className="px-6 py-3 text-slate-500 line-clamp-1">{p.titulo}</td>
+                                <td className="px-6 py-3 text-right text-xs font-bold uppercase text-slate-400 italic">Arquivado</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                 </table>
+              </div>
+          </section>
+      )}
     </div>
   );
 }

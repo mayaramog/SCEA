@@ -120,6 +120,18 @@ public class AuthController {
         return ResponseEntity.ok(mapToResponse(salvo));
     }
 
+    @DeleteMapping("/usuarios/{id}")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @Transactional
+    public ResponseEntity<Void> desativarUsuario(@PathVariable("id") UUID id) {
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+        
+        usuario.setEstaAtivo(!usuario.isEstaAtivo()); // Toggle status
+        usuarioRepository.save(usuario);
+        return ResponseEntity.ok().build();
+    }
+
     @GetMapping("/me")
     public ResponseEntity<UsuarioResponse> me(Authentication authentication) {
         return usuarioRepository.findByEmail(authentication.getName())
