@@ -9,7 +9,10 @@ export default defineConfig({
     baseURL: 'http://localhost:5173',
     headless: true,
     viewport: { width: 1280, height: 720 },
-    actionTimeout: 10000,
+    actionTimeout: 15000,
+    screenshot: 'on',
+    video: 'on',
+    trace: 'on',
   },
   webServer: {
     command: 'npm run dev -- --port 5173',

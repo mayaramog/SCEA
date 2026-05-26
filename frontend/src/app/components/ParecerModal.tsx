@@ -122,6 +122,7 @@ export function ParecerModal({ protocolo, onClose, onSubmit }: ParecerModalProps
                         1. Análise Técnica e Desenho Experimental <span className="text-red-500">*</span>
                     </span>
                     <textarea
+                        id="resumo-tecnico"
                         value={resumoTecnico}
                         onChange={(e) => setResumoTecnico(e.target.value)}
                         rows={5}
@@ -136,6 +137,7 @@ export function ParecerModal({ protocolo, onClose, onSubmit }: ParecerModalProps
                         2. Considerações Éticas (Bem-estar e 3Rs) <span className="text-red-500">*</span>
                     </span>
                     <textarea
+                        id="consideracoes-eticas"
                         value={consideracoesEticas}
                         onChange={(e) => setConsideracoesEticas(e.target.value)}
                         rows={5}

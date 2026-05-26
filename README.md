@@ -99,15 +99,49 @@ Inicie os serviços na seguinte ordem para garantir que o registro no Eureka fun
 
 | E-mail | Senha | Papel (Role) |
 | :--- | :--- | :--- |
-| `admin@scea.local` | `1234` | ADMINISTRADOR |
-| `test@scea.local` | `1234` | TODOS OS PAPÉIS |
-| `docente@scea.local` | `1234` | DOCENTE |
-| `secretaria@scea.local` | `1234` | SECRETARIA |
+| `admin@scea.local` | `123` | ADMINISTRADOR |
+| `test@scea.local` | `123` | TODOS OS PAPÉIS |
+| `docente@scea.local` | `123` | DOCENTE |
+| `secretaria@scea.local` | `123` | SECRETARIA |
 
 ---
 
-## 🛡️ Segurança e RBAC
-O sistema utiliza **JWT (JSON Web Token)**. Ao logar, o Gateway repassa as permissões para os microsserviços, que utilizam `@PreAuthorize` para garantir que, por exemplo, um Docente não consiga acessar rotas da Secretaria.
+## 🧪 Testes E2E (Playwright)
+
+O projeto conta com uma suíte de testes end-to-end automatizada para garantir que os requisitos de negócio e fluxos críticos estejam funcionando corretamente.
+
+### Pré-requisitos
+- O ambiente Docker deve estar rodando (`docker-compose up`).
+- Node.js instalado (versão 18 ou superior).
+
+### Como Executar os Testes
+Navegue até a pasta do frontend e instale as dependências:
+```bash
+cd frontend
+npm install
+npx playwright install chromium
+```
+
+Para rodar todos os testes com geração de evidências (fotos e vídeos):
+```bash
+npx playwright test
+```
+
+### Visualizando Resultados e Evidências
+- **Relatório Interativo:** Para abrir o relatório detalhado no navegador:
+  ```bash
+  npx playwright show-report
+  ```
+- **Vídeos e Fotos:** As evidências ficam salvas em `frontend/test-results/`.
+- **Traces:** Para debugar um passo a passo técnico:
+  ```bash
+  npx playwright show-trace path/to/trace.zip
+  ```
+
+### Casos de Teste Cobertos
+- **Ciclo de Vida do Protocolo:** Submissão (Docente) -> Designação (Secretaria) -> Parecer Técnico (Parecerista) -> Deliberação (Presidente).
+- **Regras de Negócio:** Bloqueio de datas em finais de semana/feriados e obrigatoriedade de alocação de animais.
+- **Segurança:** Validação de login e controle de acesso baseado em papéis (RBAC).
 
 ---
 *Desenvolvido para a disciplina de Qualidade de Software.*

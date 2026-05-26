@@ -211,7 +211,27 @@ export const api = {
   // MEETING (COMITE) METHODS
   async fetchReunioes(): Promise<Reuniao[]> {
     const resp = await fetch(`${API_BASE_URL}/comite/reunioes`, { headers: getHeaders() });
-    return resp.ok ? resp.json() : [];
+    if (!resp.ok) return [];
+    const data = await resp.json();
+    
+    // For each meeting, we fetch details to ensure pauta is populated
+    const fullReunioes = await Promise.all(data.map(async (r: any) => {
+        const dResp = await fetch(`${API_BASE_URL}/comite/reunioes/${r.id}`, { headers: getHeaders() });
+        if (dResp.ok) {
+            return await dResp.json();
+        }
+        return r;
+    }));
+
+    return fullReunioes.map((r: any) => ({
+      id: r.id,
+      codigoReuniao: r.codigoReuniao,
+      agendadaPara: r.agendadaPara,
+      descricaoLocal: r.descricaoLocal || '',
+      estado: r.estado.toLowerCase() as any,
+      observacoes: r.observacoes || '',
+      pauta: r.pauta || []
+    }));
   },
 
   async createReuniao(r: Partial<Reuniao>): Promise<Reuniao> {
@@ -221,7 +241,7 @@ export const api = {
       body: JSON.stringify(r),
     });
     if (!resp.ok) throw new Error('Falha ao criar reunião');
-    return resp.json();
+    return resp.json(); // Reverted to raw return
   },
 
   async updateReuniaoEstado(id: string, novoEstado: string): Promise<void> {

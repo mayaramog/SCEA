@@ -214,15 +214,35 @@ export function PresidenteDashboard({ protocolos, onDeliberar }: PresidenteDashb
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium mb-1">Código da Reunião</label>
-                    <input type="text" value={newCodigo} onChange={e => setNewCodigo(e.target.value)} className="w-full border rounded-lg p-2" placeholder="RC-2026-001" />
+                    <input 
+                        id="new-reuniao-codigo"
+                        type="text" 
+                        value={newCodigo} 
+                        onChange={e => setNewCodigo(e.target.value)} 
+                        className="w-full border rounded-lg p-2" 
+                        placeholder="RC-2026-001" 
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-1">Data e Hora</label>
-                    <input type="datetime-local" value={newData} onChange={e => setNewData(e.target.value)} className="w-full border rounded-lg p-2" />
+                    <input 
+                        id="new-reuniao-data"
+                        type="datetime-local" 
+                        value={newData} 
+                        onChange={e => setNewData(e.target.value)} 
+                        className="w-full border rounded-lg p-2" 
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-1">Local</label>
-                    <input type="text" value={newLocal} onChange={e => setNewLocal(e.target.value)} className="w-full border rounded-lg p-2" placeholder="Sala A ou Link Teams" />
+                    <input 
+                        id="new-reuniao-local"
+                        type="text" 
+                        value={newLocal} 
+                        onChange={e => setNewLocal(e.target.value)} 
+                        className="w-full border rounded-lg p-2" 
+                        placeholder="Sala A ou Link Teams" 
+                    />
                   </div>
                 </div>
                 <div className="flex justify-end gap-3 mt-6">
