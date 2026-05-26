@@ -23,7 +23,13 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
       const { user } = await api.login(email, senha);
       onLogin(user);
     } catch (err: any) {
-      setError(err.message || 'Falha na autenticação. Verifique suas credenciais.');
+      // Map common network/fetch errors to a clearer message for the user
+      const msg: string = err?.message || '';
+      if (msg.includes('Failed to fetch') || msg.includes('NetworkError') || err instanceof TypeError) {
+        setError('Não foi possível comunicar-se com o API Gateway. Verifique sua conexão e tente novamente.');
+      } else {
+        setError(msg || 'Falha na autenticação. Verifique suas credenciais.');
+      }
     } finally {
       setLoading(false);
     }

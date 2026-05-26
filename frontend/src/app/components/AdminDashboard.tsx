@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { UserPlus, Shield, Users, Save, CheckCircle, XCircle, Beaker, MapPin, Plus } from 'lucide-react';
+import { UserPlus, Shield, Users, Save, CheckCircle, XCircle, Beaker, MapPin, Plus, Power } from 'lucide-react';
 import api, { UsuarioBackend, Especie, Bioterio } from '../utils/api';
 
 export function AdminDashboard() {
@@ -60,6 +60,30 @@ export function AdminDashboard() {
       setShowCreateUser(false);
       setFormData({ ...formData, nome: '', email: '', senha: '' });
       loadAll();
+    } catch (e: any) { alert(e.message); }
+  };
+
+  const handleDeactivateUser = async (id: string, currentlyActive: boolean) => {
+    if (!confirm(`Deseja realmente ${currentlyActive ? 'desativar' : 'ativar'} este usuário?`)) return;
+    try {
+        await api.desativarUsuario(id);
+        loadAll();
+    } catch (e: any) { alert(e.message); }
+  };
+
+  const handleDeactivateEspecie = async (id: string, currentlyActive: boolean) => {
+    if (!confirm(`Deseja realmente ${currentlyActive ? 'desativar' : 'ativar'} esta espécie?`)) return;
+    try {
+        await api.desativarEspecie(id);
+        loadAll();
+    } catch (e: any) { alert(e.message); }
+  };
+
+  const handleDeactivateBioterio = async (id: string, currentlyActive: boolean) => {
+    if (!confirm(`Deseja realmente ${currentlyActive ? 'desativar' : 'ativar'} este biotério?`)) return;
+    try {
+        await api.desativarBioterio(id);
+        loadAll();
     } catch (e: any) { alert(e.message); }
   };
 
@@ -140,13 +164,13 @@ export function AdminDashboard() {
                 <div className="overflow-x-auto">
                     <table className="w-full">
                         <thead className="bg-slate-50 text-slate-400 text-[10px] uppercase font-black tracking-tighter border-b">
-                            <tr><th className="px-6 py-4 text-left">Nome</th><th className="px-6 py-4 text-left">E-mail</th><th className="px-6 py-4 text-left">Papéis</th><th className="px-6 py-4 text-right"></th></tr>
+                            <tr><th className="px-6 py-4 text-left">Nome</th><th className="px-6 py-4 text-left">E-mail</th><th className="px-6 py-4 text-left">Papéis</th><th className="px-6 py-4 text-left">Status</th><th className="px-6 py-4 text-right">Ações</th></tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
                             {usuarios.map(u => (
-                                <tr key={u.id} className="hover:bg-slate-50/50 transition-colors">
+                                <tr key={u.id} className={`hover:bg-slate-50/50 transition-colors ${!u.estaAtivo ? 'opacity-50 grayscale' : ''}`}>
                                     <td className="px-6 py-4 font-bold text-slate-900">{u.nomeCompleto}</td>
-                                    <td className="px-6 py-4 text-sm text-slate-500">{u.email}</td>
+                                    <td className="px-6 py-4 text-sm text-slate-600">{u.email}</td>
                                     <td className="px-6 py-4">
                                         <div className="flex flex-wrap gap-1">
                                             {u.papeis.map((p, idx) => (
@@ -154,10 +178,29 @@ export function AdminDashboard() {
                                             ))}
                                         </div>
                                     </td>
+                                    <td className="px-6 py-4">
+                                        {u.estaAtivo ? (
+                                            <span className="flex items-center gap-1 text-green-600 text-[10px] font-black uppercase">
+                                                <CheckCircle className="w-3 h-3" /> Ativo
+                                            </span>
+                                        ) : (
+                                            <span className="flex items-center gap-1 text-red-600 text-[10px] font-black uppercase">
+                                                <XCircle className="w-3 h-3" /> Inativo
+                                            </span>
+                                        )}
+                                    </td>
                                     <td className="px-6 py-4 text-right">
-                                        <button onClick={() => handleOpenRoles(u)} className="text-blue-600 font-black text-[10px] uppercase tracking-widest hover:underline flex items-center gap-1 ml-auto">
-                                            <Shield className="w-3 h-3" /> Editar Acesso
-                                        </button>
+                                        <div className="flex justify-end gap-3">
+                                            <button onClick={() => handleOpenRoles(u)} className="text-blue-600 font-black text-[10px] uppercase tracking-widest hover:underline flex items-center gap-1">
+                                                <Shield className="w-3 h-3" /> Acesso
+                                            </button>
+                                            <button 
+                                                onClick={() => handleDeactivateUser(u.id, u.estaAtivo)} 
+                                                className={`${u.estaAtivo ? 'text-red-500' : 'text-green-500'} font-black text-[10px] uppercase tracking-widest hover:underline flex items-center gap-1`}
+                                            >
+                                                <Power className="w-3 h-3" /> {u.estaAtivo ? 'Desativar' : 'Ativar'}
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
@@ -181,12 +224,14 @@ export function AdminDashboard() {
                 </div>
                 <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-4">
                     {especies.map(e => (
-                        <div key={e.id} className="p-4 border border-slate-200 rounded-2xl bg-white shadow-sm flex items-center justify-between">
+                        <div key={e.id} className={`p-4 border border-slate-200 rounded-2xl bg-white shadow-sm flex items-center justify-between transition-all ${!(e as any).ativo ? 'opacity-50 grayscale bg-slate-50' : ''}`}>
                             <div>
                                 <p className="text-[10px] font-black text-purple-600 uppercase mb-1">{e.codigo}</p>
                                 <p className="font-bold text-slate-900">{e.nome}</p>
                             </div>
-                            <CheckCircle className="w-5 h-5 text-green-500" />
+                            <button onClick={() => handleDeactivateEspecie(e.id, (e as any).ativo)} className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
+                                {(e as any).ativo ? <CheckCircle className="w-5 h-5 text-green-500" /> : <XCircle className="w-5 h-5 text-red-500" />}
+                            </button>
                         </div>
                     ))}
                 </div>
@@ -207,15 +252,18 @@ export function AdminDashboard() {
                 </div>
                 <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                     {bioterios.map(b => (
-                        <div key={b.id} className="p-6 border border-slate-200 rounded-2xl bg-white shadow-sm flex items-start gap-4">
+                        <div key={b.id} className={`p-6 border border-slate-200 rounded-2xl bg-white shadow-sm flex items-start gap-4 transition-all ${!(b as any).ativo ? 'opacity-50 grayscale bg-slate-50' : ''}`}>
                             <div className="w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center">
                                 <MapPin className="w-6 h-6 text-green-600" />
                             </div>
-                            <div>
+                            <div className="flex-1">
                                 <p className="text-[10px] font-black text-green-600 uppercase mb-1">{b.codigo}</p>
                                 <h4 className="font-black text-slate-900">{b.nome}</h4>
-                                <p className="text-xs text-slate-500 mt-1">Status: <span className="text-green-600 font-bold uppercase">Operacional</span></p>
+                                <p className="text-xs text-slate-500 mt-1">Status: <span className={`${(b as any).ativo ? 'text-green-600' : 'text-red-500'} font-bold uppercase`}>{(b as any).ativo ? 'Operacional' : 'Desativado'}</span></p>
                             </div>
+                            <button onClick={() => handleDeactivateBioterio(b.id, (b as any).ativo)} className="p-2 hover:bg-slate-100 rounded-lg">
+                                {(b as any).ativo ? <CheckCircle className="w-5 h-5 text-green-500" /> : <XCircle className="w-5 h-5 text-red-500" />}
+                            </button>
                         </div>
                     ))}
                 </div>

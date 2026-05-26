@@ -41,6 +41,7 @@ export interface Protocolo {
   id: string;
   docenteId: string;
   docenteNome: string;
+  titulo: string;
   justificativa: string;
   resumoPt: string;
   resumoEn: string;
@@ -86,10 +87,9 @@ export default function App() {
 
   useEffect(() => {
     if (user) {
-      api.fetchProtocolos().then(setProtocolos);
+        api.fetchProtocolos().then(setProtocolos);
     }
-  }, [user]);
-
+  }, [user, activeRole]);
   const handleLogin = (loggedUser: User) => {
     setUser(loggedUser);
     setActiveRole(loggedUser.role);

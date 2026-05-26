@@ -50,4 +50,24 @@ public class RecursosController {
         bioterio.setAtivo(true);
         return ResponseEntity.ok(bioterioRepository.save(bioterio));
     }
+
+    @DeleteMapping("/especies/{id}")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<Void> desativarEspecie(@PathVariable("id") UUID id) {
+        EspecieEntity especie = especieRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Espécie não encontrada"));
+        especie.setAtivo(!especie.isAtivo());
+        especieRepository.save(especie);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/bioterios/{id}")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<Void> desativarBioterio(@PathVariable("id") UUID id) {
+        BioterioEntity bioterio = bioterioRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Biotério não encontrado"));
+        bioterio.setAtivo(!bioterio.isAtivo());
+        bioterioRepository.save(bioterio);
+        return ResponseEntity.ok().build();
+    }
 }

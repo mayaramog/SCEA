@@ -13,12 +13,21 @@ export function PareceristaDashboard({ user, protocolos, onSubmitParecer }: Pare
   const [selectedProtocolo, setSelectedProtocolo] = useState<Protocolo | null>(null);
 
   // Filtrar protocolos onde este usuário é o parecerista designado e ainda não avaliou
-  const protocolosPendentes = protocolos.filter(p => 
-    p.designacoesParecer.some(d => d.usuarioPareceristaId === user.matricula && d.estadoDesignacao !== 'concluido')
-  );
+  const protocolosPendentes = protocolos.filter(p => {
+    // Se o estado do protocolo for 'aguardando_parecer', ele deve aparecer para o parecerista designado
+    if (p.estado !== 'aguardando_parecer') return false;
+    
+    return p.designacoesParecer.some(d => 
+        d.usuarioPareceristaId?.toString().toLowerCase() === user.matricula.toLowerCase() && 
+        d.estadoDesignacao !== 'concluido'
+    );
+  });
 
   const protocolosConcluidos = protocolos.filter(p => 
-    p.designacoesParecer.some(d => d.usuarioPareceristaId === user.matricula && d.estadoDesignacao === 'concluido')
+    p.designacoesParecer.some(d => 
+        d.usuarioPareceristaId?.toString().toLowerCase() === user.matricula.toLowerCase() && 
+        d.estadoDesignacao === 'concluido'
+    )
   );
 
   return (
@@ -92,6 +101,7 @@ export function PareceristaDashboard({ user, protocolos, onSubmitParecer }: Pare
               <thead className="bg-slate-50 border-b">
                 <tr>
                   <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Protocolo</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Título</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Pesquisador</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Estado Atual</th>
                 </tr>
@@ -100,6 +110,7 @@ export function PareceristaDashboard({ user, protocolos, onSubmitParecer }: Pare
                 {protocolosConcluidos.map((p) => (
                   <tr key={p.id} className="hover:bg-slate-50 transition-colors">
                     <td className="px-6 py-4 font-medium text-slate-900">{p.id.substring(0,8)}...</td>
+                    <td className="px-6 py-4 text-sm text-slate-600">{p.titulo || 'Sem Título'}</td>
                     <td className="px-6 py-4 text-sm text-slate-600">{p.docenteNome}</td>
                     <td className="px-6 py-4">
                       <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">

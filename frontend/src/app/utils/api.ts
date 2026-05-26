@@ -12,14 +12,15 @@ const getHeaders = () => {
 
 export interface Especie {
   id: string;
-  codigo: string;
   nome: string;
+  ativo: boolean;
 }
 
 export interface Bioterio {
   id: string;
   codigo: string;
   nome: string;
+  ativo: boolean;
 }
 
 export interface Reuniao {
@@ -105,10 +106,23 @@ export const api = {
 
     const data = await response.json();
     
-    return data.map((p: any) => ({
+    // For each protocol, we fetch its designações to ensure the dashboard has all info
+    const fullProtocolos = await Promise.all(data.map(async (p: any) => {
+        // Optimization: only fetch if not present
+        if (!p.designacoesParecer || p.designacoesParecer.length === 0) {
+            const dResp = await fetch(`${API_BASE_URL}/protocolos/${p.id}/designacoes`, { headers: getHeaders() });
+            if (dResp.ok) {
+                p.designacoesParecer = await dResp.json();
+            }
+        }
+        return p;
+    }));
+
+    return fullProtocolos.map((p: any) => ({
       id: p.id,
       docenteId: p.idUsuarioSubmetedor,
       docenteNome: p.nomePesquisadorResponsavel,
+      titulo: p.titulo,
       justificativa: p.justificativa,
       resumoPt: p.resumo,
       resumoEn: p.resumo,
@@ -197,7 +211,27 @@ export const api = {
   // MEETING (COMITE) METHODS
   async fetchReunioes(): Promise<Reuniao[]> {
     const resp = await fetch(`${API_BASE_URL}/comite/reunioes`, { headers: getHeaders() });
-    return resp.ok ? resp.json() : [];
+    if (!resp.ok) return [];
+    const data = await resp.json();
+    
+    // For each meeting, we fetch details to ensure pauta is populated
+    const fullReunioes = await Promise.all(data.map(async (r: any) => {
+        const dResp = await fetch(`${API_BASE_URL}/comite/reunioes/${r.id}`, { headers: getHeaders() });
+        if (dResp.ok) {
+            return await dResp.json();
+        }
+        return r;
+    }));
+
+    return fullReunioes.map((r: any) => ({
+      id: r.id,
+      codigoReuniao: r.codigoReuniao,
+      agendadaPara: r.agendadaPara,
+      descricaoLocal: r.descricaoLocal || '',
+      estado: r.estado.toLowerCase() as any,
+      observacoes: r.observacoes || '',
+      pauta: r.pauta || []
+    }));
   },
 
   async createReuniao(r: Partial<Reuniao>): Promise<Reuniao> {
@@ -207,7 +241,7 @@ export const api = {
       body: JSON.stringify(r),
     });
     if (!resp.ok) throw new Error('Falha ao criar reunião');
-    return resp.json();
+    return resp.json(); // Reverted to raw return
   },
 
   async updateReuniaoEstado(id: string, novoEstado: string): Promise<void> {
@@ -264,6 +298,38 @@ export const api = {
       body: JSON.stringify({ codigosPapeis: papeis }),
     });
     if (!resp.ok) throw new Error('Falha ao atualizar papéis');
+  },
+
+  async desativarUsuario(userId: string): Promise<void> {
+    const resp = await fetch(`${API_BASE_URL}/auth/usuarios/${userId}`, {
+      method: 'DELETE',
+      headers: getHeaders(),
+    });
+    if (!resp.ok) throw new Error('Falha ao alterar status do usuário');
+  },
+
+  async desativarEspecie(id: string): Promise<void> {
+    const resp = await fetch(`${API_BASE_URL}/recursos/especies/${id}`, {
+      method: 'DELETE',
+      headers: getHeaders(),
+    });
+    if (!resp.ok) throw new Error('Falha ao alterar status da espécie');
+  },
+
+  async desativarBioterio(id: string): Promise<void> {
+    const resp = await fetch(`${API_BASE_URL}/recursos/bioterios/${id}`, {
+      method: 'DELETE',
+      headers: getHeaders(),
+    });
+    if (!resp.ok) throw new Error('Falha ao alterar status do biotério');
+  },
+
+  async arquivarProtocolo(id: string): Promise<void> {
+    const resp = await fetch(`${API_BASE_URL}/protocolos/${id}`, {
+      method: 'DELETE',
+      headers: getHeaders(),
+    });
+    if (!resp.ok) throw new Error('Falha ao arquivar protocolo');
   },
 
   async designarParecerista(protocoloId: string, pareceristaId: string): Promise<void> {

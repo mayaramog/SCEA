@@ -36,8 +36,9 @@ export function ProtocoloWizard({ onSubmit, onCancel }: ProtocoloWizardProps) {
   const [bioterioId, setBioterioId] = useState('');
 
   useEffect(() => {
-    api.fetchEspecies().then(setEspeciesList);
-    api.fetchBioterios().then(setBioteriosList);
+    // Carregar e filtrar apenas recursos ATIVOS
+    api.fetchEspecies().then(list => setEspeciesList(list.filter(e => e.ativo)));
+    api.fetchBioterios().then(list => setBioteriosList(list.filter(b => b.ativo)));
   }, []);
 
   const validateStep1 = () => {
@@ -287,18 +288,35 @@ export function ProtocoloWizard({ onSubmit, onCancel }: ProtocoloWizardProps) {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                   <div>
                     <label className="block text-xs font-bold text-slate-500 mb-2 uppercase">Espécie</label>
-                    <select value={especieId} onChange={(e) => setEspecieId(e.target.value)} className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white shadow-sm focus:ring-2 focus:ring-blue-100">
+                    <select 
+                        id="especie-select"
+                        value={especieId} 
+                        onChange={(e) => setEspecieId(e.target.value)} 
+                        className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white shadow-sm focus:ring-2 focus:ring-blue-100"
+                    >
                       <option value="">Selecione...</option>
                       {especiesList.map(e => <option key={e.id} value={e.id}>{e.nome}</option>)}
                     </select>
                   </div>
                   <div>
                     <label className="block text-xs font-bold text-slate-500 mb-2 uppercase">Quantidade</label>
-                    <input type="number" value={quantidade} onChange={(e) => setQuantidade(e.target.value)} className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white shadow-sm" placeholder="0" />
+                    <input 
+                        id="quantidade-input"
+                        type="number" 
+                        value={quantidade} 
+                        onChange={(e) => setQuantidade(e.target.value)} 
+                        className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white shadow-sm" 
+                        placeholder="0" 
+                    />
                   </div>
                   <div>
                     <label className="block text-xs font-bold text-slate-500 mb-2 uppercase">Biotério</label>
-                    <select value={bioterioId} onChange={(e) => setBioterioId(e.target.value)} className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white shadow-sm focus:ring-2 focus:ring-blue-100">
+                    <select 
+                        id="bioterio-select"
+                        value={bioterioId} 
+                        onChange={(e) => setBioterioId(e.target.value)} 
+                        className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white shadow-sm focus:ring-2 focus:ring-blue-100"
+                    >
                       <option value="">Selecione...</option>
                       {bioteriosList.map(b => <option key={b.id} value={b.id}>{b.nome}</option>)}
                     </select>
