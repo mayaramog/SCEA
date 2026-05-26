@@ -13,12 +13,21 @@ export function PareceristaDashboard({ user, protocolos, onSubmitParecer }: Pare
   const [selectedProtocolo, setSelectedProtocolo] = useState<Protocolo | null>(null);
 
   // Filtrar protocolos onde este usuário é o parecerista designado e ainda não avaliou
-  const protocolosPendentes = protocolos.filter(p => 
-    p.designacoesParecer.some(d => d.usuarioPareceristaId === user.matricula && d.estadoDesignacao !== 'concluido')
-  );
+  const protocolosPendentes = protocolos.filter(p => {
+    // Se o estado do protocolo for 'aguardando_parecer', ele deve aparecer para o parecerista designado
+    if (p.estado !== 'aguardando_parecer') return false;
+    
+    return p.designacoesParecer.some(d => 
+        d.usuarioPareceristaId?.toString().toLowerCase() === user.matricula.toLowerCase() && 
+        d.estadoDesignacao !== 'concluido'
+    );
+  });
 
   const protocolosConcluidos = protocolos.filter(p => 
-    p.designacoesParecer.some(d => d.usuarioPareceristaId === user.matricula && d.estadoDesignacao === 'concluido')
+    p.designacoesParecer.some(d => 
+        d.usuarioPareceristaId?.toString().toLowerCase() === user.matricula.toLowerCase() && 
+        d.estadoDesignacao === 'concluido'
+    )
   );
 
   return (

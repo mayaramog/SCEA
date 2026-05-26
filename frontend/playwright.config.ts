@@ -6,12 +6,13 @@ export default defineConfig({
   expect: { timeout: 5000 },
   fullyParallel: true,
   use: {
+    baseURL: 'http://localhost:5173',
     headless: true,
     viewport: { width: 1280, height: 720 },
     actionTimeout: 10000,
   },
   webServer: {
-    command: 'npm run start:offline',
+    command: 'npm run dev -- --port 5173',
     url: 'http://localhost:5173',
     reuseExistingServer: false,
     timeout: 120_000,

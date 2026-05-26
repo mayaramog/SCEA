@@ -108,6 +108,9 @@ export function SecretariaDashboard({ protocolos, onDesignarParecerista }: Secre
                       Protocolo
                     </th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
+                      Título
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
                       Pesquisador
                     </th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
@@ -123,7 +126,9 @@ export function SecretariaDashboard({ protocolos, onDesignarParecerista }: Secre
                     <tr key={protocolo.id} className="hover:bg-slate-50 transition-colors">
                       <td className="px-6 py-4">
                         <div className="font-bold text-slate-900">{protocolo.id.substring(0,8)}...</div>
-                        <div className="text-sm text-slate-500 line-clamp-1">{protocolo.justificativa}</div>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-slate-600 font-medium">
+                        {protocolo.titulo}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
                         {protocolo.docenteNome}

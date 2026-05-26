@@ -106,7 +106,19 @@ export const api = {
 
     const data = await response.json();
     
-    return data.map((p: any) => ({
+    // For each protocol, we fetch its designações to ensure the dashboard has all info
+    const fullProtocolos = await Promise.all(data.map(async (p: any) => {
+        // Optimization: only fetch if not present
+        if (!p.designacoesParecer || p.designacoesParecer.length === 0) {
+            const dResp = await fetch(`${API_BASE_URL}/protocolos/${p.id}/designacoes`, { headers: getHeaders() });
+            if (dResp.ok) {
+                p.designacoesParecer = await dResp.json();
+            }
+        }
+        return p;
+    }));
+
+    return fullProtocolos.map((p: any) => ({
       id: p.id,
       docenteId: p.idUsuarioSubmetedor,
       docenteNome: p.nomePesquisadorResponsavel,
