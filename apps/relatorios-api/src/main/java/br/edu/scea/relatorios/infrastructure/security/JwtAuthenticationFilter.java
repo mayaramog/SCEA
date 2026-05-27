@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(JwtAuthenticationFilter.class);
     private final String secret;
 
     public JwtAuthenticationFilter(String secret) {
@@ -60,7 +61,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
         } catch (Exception e) {
-            System.err.println("DEBUG: JWT Validation failed on Relatorios API: " + e.getMessage());
+            log.error("DEBUG: JWT Validation failed on Relatorios API: " + e.getMessage());
         }
 
         filterChain.doFilter(request, response);

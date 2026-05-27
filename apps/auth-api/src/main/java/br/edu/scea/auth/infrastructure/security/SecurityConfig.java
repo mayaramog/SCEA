@@ -19,6 +19,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 public class SecurityConfig {
 
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SecurityConfig.class);
+
     @Value("${auth.jwt.secret}")
     private String jwtSecret;
 
@@ -37,7 +39,7 @@ public class SecurityConfig {
                 )
                 .addFilterBefore(new JwtAuthenticationFilter(jwtSecret), UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(ex -> ex.authenticationEntryPoint((request, response, authException) -> {
-                    System.err.println("DEBUG: Auth Error: " + authException.getMessage());
+                    log.error("DEBUG: Auth Error: " + authException.getMessage());
                     response.sendError(401, "Acesso negado: " + authException.getMessage());
                 }))
                 .build();

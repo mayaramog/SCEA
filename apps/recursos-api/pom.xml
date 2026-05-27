@@ -63,13 +63,13 @@
             <scope>runtime</scope>
         </dependency>
         <dependency>
+            <groupId>br.edu.scea</groupId>
+            <artifactId>shared-contracts</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>br.edu.scea</groupId>
-            <artifactId>shared-contracts</artifactId>
         </dependency>
     </dependencies>
 

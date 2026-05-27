@@ -18,6 +18,8 @@ import java.util.UUID;
 @Component
 public class ProtocolApprovedListener {
 
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ProtocolApprovedListener.class);
+
     private final RelatorioRepository relatorioRepository;
     private final RabbitTemplate rabbitTemplate;
     private final String STORAGE_PATH = "C:/Users/Gustavo Cortez/Documents/Faculdade/QS/SCEA/storage/certificados/";
@@ -29,7 +31,7 @@ public class ProtocolApprovedListener {
 
     @RabbitListener(queues = RabbitMQConfig.QUEUE_GERACAO_NAME)
     public void onProtocolApproved(ProtocolApprovedV1 event) {
-        System.out.println("DEBUG: Iniciando geração de PDF para protocolo: " + event.protocolId());
+        log.info("DEBUG: Iniciando geração de PDF para protocolo: " + event.protocolId());
 
         String fileName = "certificado_" + event.protocolId() + ".pdf";
         String fullPath = STORAGE_PATH + fileName;
@@ -62,7 +64,7 @@ public class ProtocolApprovedListener {
             relatorio.setEnviadoEm(OffsetDateTime.now());
             relatorioRepository.save(relatorio);
 
-            System.out.println("DEBUG: PDF gerado e salvo em: " + fullPath);
+            log.info("DEBUG: PDF gerado e salvo em: " + fullPath);
 
             // 3. Notificar o Worker
             NotificationEvent notification = new NotificationEvent(
@@ -78,11 +80,10 @@ public class ProtocolApprovedListener {
                 RabbitMQConfig.ROUTING_KEY_NOTIFICAR, 
                 notification
             );
-            System.out.println("DEBUG: Evento de notificação enviado para o Worker.");
+            log.info("DEBUG: Evento de notificação enviado para o Worker.");
 
         } catch (Exception e) {
-            System.err.println("ERRO na geração do relatório: " + e.getMessage());
-            e.printStackTrace();
+            log.error("ERRO na geração do relatório: " + e.getMessage());
         }
     }
 }
