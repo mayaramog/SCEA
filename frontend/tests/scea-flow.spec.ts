@@ -4,9 +4,9 @@ const BASE_URL = 'http://localhost:5173';
 const TEST_EMAIL = 'test@scea.local';
 const TEST_PASS = '123';
 
-test.describe('SCEA Full Flow E2E', () => {
+test.describe('Fluxo Completo SCEA E2E', () => {
 
-  test('should complete a full protocol lifecycle', async ({ page }) => {
+  test('deve completar o ciclo de vida total do protocolo', async ({ page }) => {
     // 1. LOGIN
     await page.goto('/');
     await page.fill('input[id="email"]', TEST_EMAIL);
@@ -56,7 +56,7 @@ test.describe('SCEA Full Flow E2E', () => {
     console.log('Protocol submitted successfully via UI');
   });
 
-  test('should fail login with invalid credentials', async ({ page }) => {
+  test('deve falhar o login com credenciais inválidas', async ({ page }) => {
     await page.goto(BASE_URL);
     await page.fill('input[id="email"]', 'errado@scea.local');
     await page.fill('input[id="senha"]', 'senha-errada');

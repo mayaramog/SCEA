@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 const TEST_EMAIL = 'test@scea.local';
 const TEST_PASS = '123';
 
-test.describe('SCEA Comprehensive Requirements Coverage', () => {
+test.describe('Cobertura Abrangente de Requisitos SCEA', () => {
 
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
@@ -20,7 +20,7 @@ test.describe('SCEA Comprehensive Requirements Coverage', () => {
     }
   });
 
-  test('should enforce date validation rules (no weekends/holidays)', async ({ page }) => {
+  test('deve aplicar as regras de validação de data (sem finais de semana/feriados)', async ({ page }) => {
     await page.click('button:has-text("Novo Protocolo")');
     
     // Fill step 1
@@ -47,7 +47,7 @@ test.describe('SCEA Comprehensive Requirements Coverage', () => {
     await expect(page.getByText('Adicionar Grupo de Animais')).toBeVisible();
   });
 
-  test('should require at least one animal allocation', async ({ page }) => {
+  test('deve exigir pelo menos uma alocação de animais', async ({ page }) => {
     await page.click('button:has-text("Novo Protocolo")');
     
     // Fill step 1
@@ -70,7 +70,7 @@ test.describe('SCEA Comprehensive Requirements Coverage', () => {
     await page.click('button:has-text("Finalizar e Submeter")');
   });
 
-  test('should complete the full protocol lifecycle: Submit -> Designate -> Review -> Approve', async ({ page }) => {
+  test('deve completar o ciclo de vida total do protocolo: Submeter -> Designar -> Parecer -> Aprovar', async ({ page }) => {
     const TITULO = `Protocolo E2E Full Flow ${Date.now()}`;
     const REUNIAO_CODE = `RC-${Date.now()}`;
 
