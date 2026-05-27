@@ -4,10 +4,10 @@ import { execSync } from 'child_process';
 const TEST_EMAIL = 'test@scea.local';
 const TEST_PASS = '123';
 
-test.describe('SCEA Traceability Matrix Validation (CT01-CT10)', () => {
+test.describe('Validação da Matriz de Rastreabilidade SCEA (CT01-CT10)', () => {
 
   // CT01: Bloqueio de submissão por perfis não acadêmicos
-  test('CT01: should block protocol submission for non-academic profiles', async ({ page }) => {
+  test('CT01: deve bloquear a submissão de protocolos para perfis não acadêmicos', async ({ page }) => {
     // Login as Secretaria
     await page.goto('/');
     await page.fill('input[id="email"]', 'secretaria@scea.local');
@@ -29,7 +29,7 @@ test.describe('SCEA Traceability Matrix Validation (CT01-CT10)', () => {
   });
 
   // CT02: Alocação cruzada de múltiplos biotérios
-  test('CT02: should allow multiple allocations from different bioterios', async ({ page }) => {
+  test('CT02: deve permitir múltiplas alocações de diferentes biotérios', async ({ page }) => {
     await page.goto('/');
     await page.fill('input[id="email"]', TEST_EMAIL);
     await page.fill('input[id="senha"]', TEST_PASS);
@@ -70,7 +70,7 @@ test.describe('SCEA Traceability Matrix Validation (CT01-CT10)', () => {
   });
 
   // CT03: Validação de datas contraditórias
-  test('CT03: should prevent start date > end date', async ({ page }) => {
+  test('CT03: deve impedir data de início > data de término', async ({ page }) => {
     await page.goto('/');
     await page.fill('input[id="email"]', TEST_EMAIL);
     await page.fill('input[id="senha"]', TEST_PASS);
@@ -95,7 +95,7 @@ test.describe('SCEA Traceability Matrix Validation (CT01-CT10)', () => {
   });
 
   // CT04/CT05: Finais de semana e Feriados
-  test('CT04/CT05: should block weekends and holidays', async ({ page }) => {
+  test('CT04/CT05: deve bloquear finais de semana e feriados', async ({ page }) => {
     await page.goto('/');
     await page.fill('input[id="email"]', TEST_EMAIL);
     await page.fill('input[id="senha"]', TEST_PASS);
@@ -124,7 +124,7 @@ test.describe('SCEA Traceability Matrix Validation (CT01-CT10)', () => {
   });
 
   // CT06/CT07: State machine and integrity (API Forgery)
-  test('CT06/CT07: should reject invalid state transitions and field values via API forgery', async ({ page }) => {
+  test('CT06/CT07: deve rejeitar transições de estado inválidas e valores de campos via falsificação de API', async ({ page }) => {
     await page.goto('/');
     await page.fill('input[id="email"]', TEST_EMAIL);
     await page.fill('input[id="senha"]', TEST_PASS);
@@ -148,7 +148,7 @@ test.describe('SCEA Traceability Matrix Validation (CT01-CT10)', () => {
   });
 
   // CT08: Deliberation without review
-  test('CT08: should not allow deliberation before technical review', async ({ page }) => {
+  test('CT08: não deve permitir deliberação antes do parecer técnico', async ({ page }) => {
     const TITULO = `CT08 No Review ${Date.now()}`;
     await page.goto('/');
     await page.fill('input[id="email"]', TEST_EMAIL);
@@ -195,7 +195,7 @@ test.describe('SCEA Traceability Matrix Validation (CT01-CT10)', () => {
   });
 
   // CT09: Polymorphic access update
-  test('CT09: should allow role switching without relogin after admin update', async ({ page }) => {
+  test('CT09: deve permitir a troca de papel sem novo login após atualização do administrador', async ({ page }) => {
     await page.goto('/');
     // Use TEST_EMAIL because we already updated its roles in previous turns
     await page.fill('input[id="email"]', TEST_EMAIL);
@@ -214,7 +214,7 @@ test.describe('SCEA Traceability Matrix Validation (CT01-CT10)', () => {
   });
 
   // CT10: Outbox and PDF (Integrity check)
-  test('CT10: should verify outbox table for pending notifications', async ({ page }) => {
+  test('CT10: deve verificar a tabela de outbox para notificações pendentes', async ({ page }) => {
     try {
         const outboxCount = execSync('docker exec scea-db psql -U postgres -d scea -t -c "SELECT count(*) FROM scea.outbox_notificacao;"').toString().trim();
         console.log(`CT10: Notifications in outbox: ${outboxCount}`);
