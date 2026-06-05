@@ -15,7 +15,8 @@ export function Header({ user, onLogout, activeRole, onRoleChange }: HeaderProps
       secretaria: 'Secretaria',
       presidente: 'Presidente',
       parecerista: 'Parecerista',
-      administrador: 'Administrador'
+      administrador: 'Administrador',
+      membro_ceua: 'Membro CEUA',
     };
     return roles[role.replace('ROLE_', '').toLowerCase()] || role;
   };
@@ -28,7 +29,7 @@ export function Header({ user, onLogout, activeRole, onRoleChange }: HeaderProps
       <div className="container mx-auto px-4 max-w-7xl">
         <div className="flex items-center justify-between h-20">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+            <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-lg" aria-hidden="true">
                 SCEA
               </span>
@@ -44,28 +45,6 @@ export function Header({ user, onLogout, activeRole, onRoleChange }: HeaderProps
           </div>
 
           <div className="flex items-center gap-6">
-            {/* Role switcher for users with multiple roles */}
-            {user.roles && user.roles.length > 1 && (
-                <div className="flex bg-slate-100 p-1 rounded-lg gap-1 border border-slate-200">
-                    {user.roles.map((role: string) => {
-                        const cleanRole = role.replace('ROLE_', '').toLowerCase() as UserRole;
-                        const label = getRoleName(role);
-                        return (
-                            <button
-                                key={role}
-                                onClick={() => onRoleChange(cleanRole)}
-                                className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${
-                                    activeRole === cleanRole 
-                                        ? 'bg-white text-blue-600 shadow-sm border border-slate-100' 
-                                        : 'text-slate-500 hover:text-slate-700'
-                                }`}
-                            >
-                                Ver como {label}
-                            </button>
-                        );
-                    })}
-                </div>
-            )}
 
             <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-lg border border-slate-200">
               <UserIcon className="w-4 h-4 text-slate-600" aria-hidden="true" />
@@ -87,6 +66,30 @@ export function Header({ user, onLogout, activeRole, onRoleChange }: HeaderProps
             </button>
           </div>
         </div>
+      </div>
+      <div className={"container mx-auto px-4 max-w-7xl"}>
+        {/* Role switcher for users with multiple roles */}
+        {user.roles && user.roles.length > 1 && (
+            <div className="flex">
+              {user.roles.map((role: string) => {
+                const cleanRole = role.replace('ROLE_', '').toLowerCase() as UserRole;
+                const label = getRoleName(role);
+                return (
+                    <button
+                        key={role}
+                        onClick={() => onRoleChange(cleanRole)}
+                        className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${
+                            activeRole === cleanRole
+                                ? 'bg-white text-blue-600 shadow-sm border border-slate-100'
+                                : 'text-slate-500 hover:text-slate-700'
+                        }`}
+                    >
+                      Ver como {label}
+                    </button>
+                );
+              })}
+            </div>
+        )}
       </div>
     </header>
   );

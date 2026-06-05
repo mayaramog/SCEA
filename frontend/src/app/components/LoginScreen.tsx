@@ -41,7 +41,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
         <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
           {/* Header */}
           <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-8 py-10 text-center">
-            <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <div className="flex items-center justify-center mx-auto mb-4">
               <span className="text-3xl font-bold text-white">SCEA</span>
             </div>
             <h1 className="text-2xl font-bold text-white mb-2">

@@ -34,8 +34,8 @@ test.describe('Fluxo Completo SCEA E2E', () => {
     await page.click('button:has-text("Próximo")');
 
     // Step 2: Dates (Avoid weekends/holidays)
-    await page.fill('input[id="data-inicio"]', '2026-06-01'); 
-    await page.fill('input[id="data-termino"]', '2026-06-15');
+    await page.fill('input[id="data-inicio"]', '2026-06-22');
+    await page.fill('input[id="data-termino"]', '2026-06-30');
     await page.click('button:has-text("Próximo")');
 
     // Step 3: Allocation

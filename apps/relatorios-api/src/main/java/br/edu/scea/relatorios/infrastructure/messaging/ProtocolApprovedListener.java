@@ -20,7 +20,7 @@ public class ProtocolApprovedListener {
 
     private final RelatorioRepository relatorioRepository;
     private final RabbitTemplate rabbitTemplate;
-    private final String STORAGE_PATH = "C:/Users/Gustavo Cortez/Documents/Faculdade/QS/SCEA/storage/certificados/";
+    private final String STORAGE_PATH = "C:/Documentos/Faculdade";
 
     public ProtocolApprovedListener(RelatorioRepository relatorioRepository, RabbitTemplate rabbitTemplate) {
         this.relatorioRepository = relatorioRepository;
