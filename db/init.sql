@@ -279,7 +279,7 @@ CREATE TABLE scea.relatorio (
     mime_type text NOT NULL,
     enviado_por_usuario_id uuid,
     enviado_em timestamp with time zone DEFAULT now() NOT NULL,
-    CONSTRAINT relatorio_tipo_documento_check CHECK ((tipo_documento = ANY (ARRAY['formulario_submissao'::text, 'projeto_pesquisa'::text, 'cronograma'::text, 'orcamento'::text, 'anexo_parecer'::text, 'ata_reuniao'::text, 'certificado_aprovacao'::text, 'outro'::text])))
+    CONSTRAINT relatorio_tipo_documento_check CHECK ((tipo_documento = ANY (ARRAY['formulario_submissao'::text, 'projeto_pesquisa'::text, 'cronograma'::text, 'orcamento'::text, 'anexo_parecer'::text, 'ata_reuniao'::text, 'certificado_aprovacao'::text, 'parecer_reprovacao'::text, 'outro'::text])))
 );
 
 

@@ -102,6 +102,34 @@ public class ProtocoloService {
         return protocoloRepository.findAll();
     }
 
+    @Transactional
+    public void arquivar(UUID id) {
+        ProtocoloEntity p = protocoloRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Protocolo não encontrado"));
+        
+        // Restrição: Não pode arquivar se já foi aprovado ou reprovado
+        if (p.getEstado() == EstadoProtocolo.APROVADO || p.getEstado() == EstadoProtocolo.REPROVADO) {
+            throw new IllegalStateException("Protocolos já deliberados (Aprovados ou Reprovados) não podem ser arquivados.");
+        }
+
+        p.setAtivo(false);
+        p.setEstado(EstadoProtocolo.ARQUIVADO);
+        p.setAtualizadoEm(LocalDateTime.now());
+        protocoloRepository.save(p);
+    }
+
+    @Transactional
+    public void desarquivar(UUID id) {
+        ProtocoloEntity p = protocoloRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Protocolo não encontrado"));
+        
+        p.setAtivo(true);
+        // Volta para o estado inicial de análise (aguardando designação)
+        p.setEstado(EstadoProtocolo.SUBMETIDO);
+        p.setAtualizadoEm(LocalDateTime.now());
+        protocoloRepository.save(p);
+    }
+
     public java.util.Optional<ProtocoloEntity> buscarPorId(UUID id) {
         return protocoloRepository.findById(id);
     }
@@ -235,6 +263,7 @@ public class ProtocoloService {
         decisao.setDecididoPorUsuarioId(usuarioLogadoId);
         decisao.setDecididoEm(LocalDateTime.now());
         decisao.setValidoAte(request.validoAte());
+
         decisao.setCriadoEm(LocalDateTime.now());
 
         protocolo.setEstado(request.novoEstado());

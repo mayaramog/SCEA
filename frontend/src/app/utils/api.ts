@@ -336,7 +336,18 @@ export const api = {
       method: 'DELETE',
       headers: getHeaders(),
     });
-    if (!resp.ok) throw new Error('Falha ao arquivar protocolo');
+    if (!resp.ok) {
+        const data = await resp.json().catch(() => ({}));
+        throw new Error(data.detail || 'Falha ao arquivar protocolo');
+    }
+  },
+
+  async desarquivarProtocolo(id: string): Promise<void> {
+    const resp = await fetch(`${API_BASE_URL}/protocolos/${id}/desarquivar`, {
+      method: 'POST',
+      headers: getHeaders(),
+    });
+    if (!resp.ok) throw new Error('Falha ao desarquivar protocolo');
   },
 
   async criarEmenda(protocoloId: string): Promise<string> {

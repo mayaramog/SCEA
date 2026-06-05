@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { User, Protocolo } from '../App';
-import { FileText, Plus, Clock, CheckCircle, XCircle, AlertCircle, Archive, Download, Edit2 } from 'lucide-react';
+import { FileText, Plus, Clock, CheckCircle, XCircle, AlertCircle, Archive, Download, Edit2, RefreshCw } from 'lucide-react';
 import api from '../utils/api';
 
 interface DocenteDashboardProps {
@@ -44,6 +44,14 @@ export function DocenteDashboard({ user, protocolos, onNovoProtocolo, onEdit, on
     if (!confirm('Deseja realmente arquivar este protocolo? Ele será movido para o histórico de arquivados.')) return;
     try {
         await api.arquivarProtocolo(id);
+        onRefresh();
+    } catch (e: any) { alert(e.message); }
+  };
+
+  const handleDesarquivar = async (id: string) => {
+    if (!confirm('Deseja desarquivar este protocolo? Ele voltará para a fase de Aguardando Designação.')) return;
+    try {
+        await api.desarquivarProtocolo(id);
         onRefresh();
     } catch (e: any) { alert(e.message); }
   };
@@ -93,11 +101,14 @@ export function DocenteDashboard({ user, protocolos, onNovoProtocolo, onEdit, on
               </td>
               <td className="px-6 py-4 text-right">
                 <div className="flex justify-end gap-3">
+                  {/* EDITAR: apenas se não deliberado e não arquivado */}
                   {!isArchived && p.estado === 'aguardando_envio_parecer' && (
                     <button onClick={() => onEdit(p)} className="text-slate-600 hover:text-blue-600" title="Editar">
                       <Edit2 className="w-5 h-5" />
                     </button>
                   )}
+                  
+                  {/* DOCUMENTOS: aprovados ou reprovados */}
                   {(p.estado === 'uso_aprovado' || p.estado === 'uso_reprovado') && relatoriosMap[p.id]?.length > 0 && (
                     <button 
                       onClick={() => api.downloadRelatorio(relatoriosMap[p.id][0].id, relatoriosMap[p.id][0].nomeArquivoOriginal)}
@@ -106,14 +117,25 @@ export function DocenteDashboard({ user, protocolos, onNovoProtocolo, onEdit, on
                       <Download className="w-5 h-5" />
                     </button>
                   )}
+                  
+                  {/* EMENDA: apenas aprovados e não arquivados */}
                   {!isArchived && p.estado === 'uso_aprovado' && (
                     <button onClick={() => handleEmenda(p.id)} className="text-orange-600 hover:text-orange-800" title="Criar Emenda">
                       <Plus className="w-5 h-5 border border-orange-600 rounded-sm" />
                     </button>
                   )}
-                  {!isArchived && (
+                  
+                  {/* ARQUIVAR: apenas se não aprovado/reprovado e não arquivado */}
+                  {!isArchived && p.estado !== 'uso_aprovado' && p.estado !== 'uso_reprovado' && (
                     <button onClick={() => handleArquivar(p.id)} className="text-slate-400 hover:text-red-500" title="Arquivar">
                       <Archive className="w-5 h-5" />
+                    </button>
+                  )}
+
+                  {/* DESARQUIVAR: apenas se arquivado */}
+                  {isArchived && (
+                    <button onClick={() => handleDesarquivar(p.id)} className="text-blue-500 hover:text-blue-700" title="Desarquivar">
+                      <RefreshCw className="w-5 h-5" />
                     </button>
                   )}
                 </div>

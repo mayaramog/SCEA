@@ -116,15 +116,18 @@ public class ProtocoloController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('DOCENTE')")
     @Operation(summary = "Arquivar (soft-delete) um protocolo")
     public ResponseEntity<Void> arquivar(@PathVariable("id") UUID id) {
-        ProtocoloEntity protocolo = protocoloRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Protocolo não encontrado"));
-        protocolo.setAtivo(false);
-        protocolo.setEstado(br.edu.scea.shared.enums.EstadoProtocolo.ARQUIVADO);
-        protocolo.setAtualizadoEm(java.time.LocalDateTime.now());
-        // Se houver campo arquivado_em futuramente, setar aqui
-        protocoloRepository.save(protocolo);
+        protocoloService.arquivar(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{id}/desarquivar")
+    @PreAuthorize("hasRole('DOCENTE')")
+    @Operation(summary = "Desarquivar um protocolo e voltar para análise")
+    public ResponseEntity<Void> desarquivar(@PathVariable("id") UUID id) {
+        protocoloService.desarquivar(id);
         return ResponseEntity.ok().build();
     }
 
