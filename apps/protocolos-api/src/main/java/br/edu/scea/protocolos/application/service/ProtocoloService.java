@@ -25,6 +25,8 @@ import java.util.stream.Collectors;
 @Service
 public class ProtocoloService {
 
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ProtocoloService.class);
+
     private final ProtocoloRepository protocoloRepository;
     private final ProtocoloDesignacaoParecerRepository designacaoRepository;
     private final ProtocoloParecerRepository parecerRepository;
@@ -217,9 +219,9 @@ public class ProtocoloService {
                 RabbitMQConfig.ROUTING_KEY_APROVADO, 
                 event
             );
-            System.out.println("DEBUG: Evento de aprovação enviado para RabbitMQ: " + p.getId());
+            log.info("DEBUG: Evento de aprovação enviado para RabbitMQ: " + p.getId());
         } catch (Exception e) {
-            System.err.println("ERRO ao enviar evento para RabbitMQ: " + e.getMessage());
+            log.error("ERRO ao enviar evento para RabbitMQ: " + e.getMessage());
         }
     }
 }

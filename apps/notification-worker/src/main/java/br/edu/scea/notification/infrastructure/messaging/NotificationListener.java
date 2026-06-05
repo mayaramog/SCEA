@@ -7,17 +7,19 @@ import org.springframework.stereotype.Component;
 @Component
 public class NotificationListener {
 
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(NotificationListener.class);
+
     @RabbitListener(queues = RabbitMQConfig.QUEUE_NAME)
     public void onNotificationRequest(NotificationEvent event) {
-        System.out.println("=====================================================");
-        System.out.println("SIMULAÇÃO DE ENVIO DE E-MAIL");
-        System.out.println("Para: " + event.recipient());
-        System.out.println("Assunto: " + event.subject());
-        System.out.println("Mensagem: " + event.message());
+        log.info("=====================================================");
+        log.info("SIMULAÇÃO DE ENVIO DE E-MAIL");
+        log.info("Para: " + event.recipient());
+        log.info("Assunto: " + event.subject());
+        log.info("Mensagem: " + event.message());
         if (event.attachmentPath() != null) {
-            System.out.println("Anexo Detectado: " + event.attachmentPath());
+            log.info("Anexo Detectado: " + event.attachmentPath());
         }
-        System.out.println("E-mail enviado com sucesso via RabbitMQ!");
-        System.out.println("=====================================================");
+        log.info("E-mail enviado com sucesso via RabbitMQ!");
+        log.info("=====================================================");
     }
 }

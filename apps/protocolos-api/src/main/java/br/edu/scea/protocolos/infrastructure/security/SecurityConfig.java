@@ -16,6 +16,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableMethodSecurity
 public class SecurityConfig {
 
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SecurityConfig.class);
+
     @Value("${auth.jwt.secret}")
     private String jwtSecret;
 
@@ -32,7 +34,7 @@ public class SecurityConfig {
                 )
                 .addFilterBefore(new JwtAuthenticationFilter(jwtSecret), UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(ex -> ex.authenticationEntryPoint((request, response, authException) -> {
-                    System.err.println("DEBUG: Protocolos Auth Error: " + authException.getMessage());
+                    log.error("DEBUG: Protocolos Auth Error: " + authException.getMessage());
                     response.sendError(401, authException.getMessage());
                 }))
                 .build();
