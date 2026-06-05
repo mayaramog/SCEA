@@ -70,9 +70,11 @@ export function PresidenteDashboard({ protocolos, onDeliberar }: PresidenteDashb
     }
   };
 
-  // Filtrar protocolos que podem ir para a pauta (em análise ou pendência)
+  // Filtrar protocolos que podem ir para a pauta
+  // Devem estar em 'aguardando_deliberacao' (significa que já passaram pelo parecerista)
+  // E não devem estar na pauta da reunião selecionada
   const protocolosDisponiveis = protocolos.filter(p => 
-    (p.estado === 'aguardando_parecer' || p.estado === 'aguardando_deliberacao') &&
+    p.estado === 'aguardando_deliberacao' &&
     !selectedReuniao?.pauta.some(item => item.protocoloId === p.id)
   );
 

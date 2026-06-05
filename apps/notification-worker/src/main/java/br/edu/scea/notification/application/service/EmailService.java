@@ -31,23 +31,24 @@ public class EmailService {
             helper.setSubject("[SCEA] " + subject);
 
             // Estilização HTML para o e-mail
-            String htmlBody = "<html><body style='font-family: Arial, sans-serif; color: #333;'>" +
-                    "<div style='max-width: 600px; margin: 0 auto; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;'>" +
-                    "<div style='background-color: #1e40af; color: white; padding: 20px; text-align: center;'>" +
-                    "<h1 style='margin: 0;'>SCEA</h1>" +
-                    "<p style='margin: 5px 0 0;'>Sistema de Controle de Experimentação Animal</p>" +
-                    "</div>" +
-                    "<div style='padding: 30px; line-height: 1.6;'>" +
-                    "<h2 style='color: #1e40af; margin-top: 0;'>" + subject + "</h2>" +
-                    "<p>" + body.replace("\n", "<br>") + "</p>" +
-                    "<div style='margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; font-size: 12px; color: #777;'>" +
-                    "Este é um e-mail automático enviado pelo SCEA. Por favor, não responda a este e-mail." +
-                    "</div>" +
-                    "</div>" +
-                    "</div>" +
-                    "</body></html>";
+            StringBuilder sb = new StringBuilder();
+            sb.append("<html><body style='font-family: Arial, sans-serif; color: #333;'>");
+            sb.append("<div style='max-width: 600px; margin: 0 auto; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;'>");
+            sb.append("<div style='background-color: #1e40af; color: white; padding: 20px; text-align: center;'>");
+            sb.append("<h1 style='margin: 0;'>SCEA</h1>");
+            sb.append("<p style='margin: 5px 0 0;'>Sistema de Controle de Experimentação Animal</p>");
+            sb.append("</div>");
+            sb.append("<div style='padding: 30px; line-height: 1.6;'>");
+            sb.append("<h2 style='color: #1e40af; margin-top: 0;'>").append(subject).append("</h2>");
+            sb.append("<p>").append(body.replace("\n", "<br>")).append("</p>");
+            sb.append("<div style='margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; font-size: 12px; color: #777;'>");
+            sb.append("Este é um e-mail automático enviado pelo SCEA. Por favor, não responda a este e-mail.");
+            sb.append("</div>");
+            sb.append("</div>");
+            sb.append("</div>");
+            sb.append("</body></html>");
 
-            helper.setText(htmlBody, true);
+            helper.setText(sb.toString(), true);
 
             if (attachmentPath != null && !attachmentPath.isEmpty()) {
                 File file = new File(attachmentPath);

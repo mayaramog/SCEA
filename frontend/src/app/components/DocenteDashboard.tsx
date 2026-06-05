@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { User, Protocolo } from '../App';
-import { FileText, Plus, Clock, CheckCircle, XCircle, AlertCircle, Archive } from 'lucide-react';
+import { FileText, Plus, Clock, CheckCircle, XCircle, AlertCircle, Archive, Download } from 'lucide-react';
 import api from '../utils/api';
 
 interface DocenteDashboardProps {
@@ -11,6 +11,20 @@ interface DocenteDashboardProps {
 }
 
 export function DocenteDashboard({ user, protocolos, onNovoProtocolo, onRefresh }: DocenteDashboardProps) {
+  const [relatoriosMap, setRelatoriosMap] = useState<Record<string, any[]>>({});
+
+  useEffect(() => {
+    // Carregar relatórios para protocolos aprovados
+    protocolos
+      .filter(p => p.estado === 'uso_aprovado' && p.docenteId === user.matricula)
+      .forEach(async (p) => {
+        if (!relatoriosMap[p.id]) {
+            const list = await api.fetchRelatoriosPorProtocolo(p.id);
+            setRelatoriosMap(prev => ({ ...prev, [p.id]: list }));
+        }
+      });
+  }, [protocolos, user.matricula]);
+
   const getEstadoIcon = (estado: string) => {
     switch (estado) {
       case 'aguardando_envio_parecer':
@@ -158,13 +172,27 @@ export function DocenteDashboard({ user, protocolos, onNovoProtocolo, onRefresh 
                         </div>
                       </td>
                       <td className="px-6 py-4 text-right">
-                         <button 
-                            onClick={() => handleArquivar(protocolo.id)}
-                            className="text-slate-400 hover:text-red-500 transition-colors"
-                            title="Arquivar Protocolo"
-                         >
-                            <Archive className="w-5 h-5" />
-                         </button>
+                         <div className="flex justify-end gap-2">
+                            {protocolo.estado === 'uso_aprovado' && relatoriosMap[protocolo.id]?.length > 0 && (
+                                <button 
+                                    onClick={() => {
+                                        const r = relatoriosMap[protocolo.id][0];
+                                        api.downloadRelatorio(r.id, r.nomeArquivoOriginal);
+                                    }}
+                                    className="text-blue-600 hover:text-blue-800 transition-colors"
+                                    title="Baixar Certificado"
+                                >
+                                    <Download className="w-5 h-5" />
+                                </button>
+                            )}
+                            <button 
+                                onClick={() => handleArquivar(protocolo.id)}
+                                className="text-slate-400 hover:text-red-500 transition-colors"
+                                title="Arquivar Protocolo"
+                            >
+                                <Archive className="w-5 h-5" />
+                            </button>
+                         </div>
                       </td>
                     </tr>
                   ))}

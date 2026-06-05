@@ -3,6 +3,7 @@ package br.edu.scea.relatorios.application.service;
 import com.lowagie.text.*;
 import com.lowagie.text.Font;
 import com.lowagie.text.Rectangle;
+import com.lowagie.text.pdf.BaseFont;
 import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
@@ -12,7 +13,6 @@ import org.springframework.stereotype.Service;
 import java.awt.*;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
 @Service
@@ -35,6 +35,10 @@ public class ReportGeneratorService {
         PdfWriter writer = PdfWriter.getInstance(document, new FileOutputStream(fullPath));
         document.open();
 
+        // Base Font with Encoding for Portuguese
+        BaseFont baseFont = BaseFont.createFont(BaseFont.HELVETICA, BaseFont.CP1252, BaseFont.NOT_EMBEDDED);
+        BaseFont baseFontBold = BaseFont.createFont(BaseFont.HELVETICA_BOLD, BaseFont.CP1252, BaseFont.NOT_EMBEDDED);
+
         // Borda Azul no Certificado
         PdfPTable borderTable = new PdfPTable(1);
         borderTable.setWidthPercentage(100);
@@ -45,14 +49,14 @@ public class ReportGeneratorService {
         borderCell.setPadding(20);
         
         // Styles
-        Font titleFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 20, new Color(30, 64, 175));
-        Font subTitleFont = FontFactory.getFont(FontFactory.HELVETICA, 14, Color.GRAY);
-        Font normalFont = FontFactory.getFont(FontFactory.HELVETICA, 12, Color.BLACK);
-        Font boldFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12, Color.BLACK);
-        Font footerFont = FontFactory.getFont(FontFactory.HELVETICA_OBLIQUE, 10, Color.LIGHT_GRAY);
+        Font titleFont = new Font(baseFontBold, 20, Font.NORMAL, new Color(30, 64, 175));
+        Font subTitleFont = new Font(baseFont, 14, Font.NORMAL, Color.GRAY);
+        Font normalFont = new Font(baseFont, 12, Font.NORMAL, Color.BLACK);
+        Font boldFont = new Font(baseFontBold, 12, Font.NORMAL, Color.BLACK);
+        Font footerFont = new Font(baseFont, 10, Font.ITALIC, Color.LIGHT_GRAY);
 
         // Header
-        Paragraph headerName = new Paragraph("SCEA", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 28, new Color(30, 64, 175)));
+        Paragraph headerName = new Paragraph("SCEA", new Font(baseFontBold, 28, Font.NORMAL, new Color(30, 64, 175)));
         headerName.setAlignment(Element.ALIGN_CENTER);
         borderCell.addElement(headerName);
         

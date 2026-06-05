@@ -362,6 +362,30 @@ export const api = {
     }
   },
 
+  // REPORT METHODS
+  async fetchRelatoriosPorProtocolo(protocoloId: string): Promise<any[]> {
+    const resp = await fetch(`${API_BASE_URL}/relatorios/protocolo/${protocoloId}`, { headers: getHeaders() });
+    return resp.ok ? resp.json() : [];
+  },
+
+  async downloadRelatorio(relatorioId: string, fileName: string): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/relatorios/${relatorioId}/download`, {
+        headers: getHeaders(),
+    });
+
+    if (!response.ok) throw new Error('Falha ao baixar relatório');
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  },
+
   mapEstado(backendEstado: string): any {
     const mapping: Record<string, string> = {
       'rascunho': 'aguardando_envio_parecer',
