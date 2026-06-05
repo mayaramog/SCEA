@@ -211,6 +211,13 @@ public class ProtocoloService {
                 emailDestino = "secretariascea@gmail.com";
             }
 
+            // Buscar análise do parecerista (pegar a primeira concluída)
+            String analiseParecerista = p.getDesignacoesParecer().stream()
+                    .filter(d -> "concluido".equals(d.getEstadoDesignacao()) && d.getParecer() != null)
+                    .map(d -> d.getParecer().getResumoTecnico() + " | Ética: " + d.getParecer().getConsideracoesEticas())
+                    .findFirst()
+                    .orElse("Análise técnica realizada via comitê.");
+
             ProtocolApprovedV1 event = new ProtocolApprovedV1(
                 UUID.randomUUID(),
                 Instant.now(),
@@ -218,10 +225,16 @@ public class ProtocoloService {
                 UUID.randomUUID().toString(),
                 "protocolos-api",
                 p.getId(),
+                p.getTitulo(),
+                p.getObjetivo(),
+                p.getResumo(),
                 emailDestino,
+                p.getNomePesquisadorResponsavel(), // Usando o que temos salvo
                 justificativa,
                 p.getDataInicioPlanejada(),
-                p.getDataTerminoPlanejada()
+                p.getDataTerminoPlanejada(),
+                analiseParecerista,
+                justificativa // A fundamentação da deliberação é a justificativa passada
             );
             
             rabbitTemplate.convertAndSend(
@@ -229,7 +242,7 @@ public class ProtocoloService {
                 RabbitMQConfig.ROUTING_KEY_APROVADO, 
                 event
             );
-            log.info("DEBUG: Evento de aprovação enviado para RabbitMQ: " + p.getId());
+            log.info("DEBUG: Evento de aprovação detalhado enviado para RabbitMQ: " + p.getId());
         } catch (Exception e) {
             log.error("ERRO ao enviar evento para RabbitMQ: " + e.getMessage());
         }

@@ -31,16 +31,22 @@ public class ProtocolApprovedListener {
 
     @RabbitListener(queues = RabbitMQConfig.QUEUE_GERACAO_NAME)
     public void onProtocolApproved(ProtocolApprovedV1 event) {
-        log.info("DEBUG: Iniciando geração de PDF para protocolo: " + event.protocolId());
+        log.info("DEBUG: Iniciando geração de PDF detalhado para protocolo: " + event.protocolId());
 
         try {
-            // 1. Gerar o PDF Real usando o serviço melhorado
+            // 1. Gerar o PDF Real usando o serviço melhorado e detalhado
             String fullPath = reportGeneratorService.generateCertificate(
                 event.protocolId(),
+                event.titulo(),
+                event.objetivo(),
+                event.resumo(),
+                event.nomePesquisador(),
                 event.justificativa(),
                 event.dataInicio().toString(),
                 event.dataTermino().toString(),
-                event.occurredAt().toString()
+                event.occurredAt().toString(),
+                event.parecerTecnico(),
+                event.fundamentacaoDeliberacao()
             );
 
             String fileName = "certificado_" + event.protocolId() + ".pdf";
