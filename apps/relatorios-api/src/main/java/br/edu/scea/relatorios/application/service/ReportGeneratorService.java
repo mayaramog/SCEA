@@ -32,7 +32,8 @@ public class ReportGeneratorService {
             String dataTermino, 
             String occurredAt,
             String analiseParecerista,
-            String fundamentacaoDeliberacao
+            String fundamentacaoDeliberacao,
+            boolean aprovado
     ) throws Exception {
         // Ensure directory exists
         File directory = new File(storagePath);
@@ -40,7 +41,7 @@ public class ReportGeneratorService {
             directory.mkdirs();
         }
 
-        String fileName = "certificado_" + protocolId + ".pdf";
+        String fileName = (aprovado ? "certificado_" : "parecer_reprovacao_") + protocolId + ".pdf";
         String fullPath = new File(storagePath, fileName).getAbsolutePath();
 
         Document document = new Document(PageSize.A4, 40, 40, 40, 40);
@@ -51,25 +52,27 @@ public class ReportGeneratorService {
         BaseFont baseFont = BaseFont.createFont(BaseFont.HELVETICA, BaseFont.CP1252, BaseFont.NOT_EMBEDDED);
         BaseFont baseFontBold = BaseFont.createFont(BaseFont.HELVETICA_BOLD, BaseFont.CP1252, BaseFont.NOT_EMBEDDED);
 
-        // Borda Azul no Certificado
+        // Borda Visual (Azul para Aprovado, Vermelha para Reprovado)
+        Color themeColor = aprovado ? new Color(30, 64, 175) : new Color(185, 28, 28);
+
         PdfPTable borderTable = new PdfPTable(1);
         borderTable.setWidthPercentage(100);
         PdfPCell borderCell = new PdfPCell();
         borderCell.setBorder(Rectangle.BOX);
         borderCell.setBorderWidth(1.5f);
-        borderCell.setBorderColor(new Color(30, 64, 175)); // Azul escuro
+        borderCell.setBorderColor(themeColor); 
         borderCell.setPadding(25);
         
         // Styles
-        Font titleFont = new Font(baseFontBold, 18, Font.NORMAL, new Color(30, 64, 175));
-        Font sectionFont = new Font(baseFontBold, 12, Font.NORMAL, new Color(30, 64, 175));
+        Font titleFont = new Font(baseFontBold, 18, Font.NORMAL, themeColor);
+        Font sectionFont = new Font(baseFontBold, 12, Font.NORMAL, themeColor);
         Font normalFont = new Font(baseFont, 10, Font.NORMAL, Color.BLACK);
         Font boldFont = new Font(baseFontBold, 10, Font.NORMAL, Color.BLACK);
         Font italicFont = new Font(baseFont, 10, Font.ITALIC, Color.DARK_GRAY);
         Font footerFont = new Font(baseFont, 8, Font.ITALIC, Color.LIGHT_GRAY);
 
         // Header
-        Paragraph headerName = new Paragraph("SCEA - SISTEMA DE CONTROLE DE EXPERIMENTAÇÃO ANIMAL", new Font(baseFontBold, 14, Font.NORMAL, new Color(30, 64, 175)));
+        Paragraph headerName = new Paragraph("SCEA - SISTEMA DE CONTROLE DE EXPERIMENTAÇÃO ANIMAL", new Font(baseFontBold, 14, Font.NORMAL, themeColor));
         headerName.setAlignment(Element.ALIGN_CENTER);
         borderCell.addElement(headerName);
         
@@ -80,7 +83,8 @@ public class ReportGeneratorService {
         borderCell.addElement(new Paragraph(" "));
 
         // Certificate Title
-        Paragraph title = new Paragraph("CERTIFICADO DE APROVAÇÃO ÉTICA", titleFont);
+        String docTitle = aprovado ? "CERTIFICADO DE APROVAÇÃO ÉTICA" : "PARECER DE REPROVAÇÃO ÉTICA";
+        Paragraph title = new Paragraph(docTitle, titleFont);
         title.setAlignment(Element.ALIGN_CENTER);
         borderCell.addElement(title);
         borderCell.addElement(new Paragraph(" "));
@@ -119,27 +123,28 @@ public class ReportGeneratorService {
         borderCell.addElement(delibPara);
         borderCell.addElement(new Paragraph(" "));
 
-        Paragraph conclPara = new Paragraph("A CEUA, em reunião plenária, deliberou pela APROVAÇÃO do uso de animais para este protocolo, considerando-o em conformidade com as normas éticas vigentes.", boldFont);
+        String conclusaoMsg = aprovado 
+            ? "A CEUA, em reunião plenária, deliberou pela APROVAÇÃO do uso de animais para este protocolo, considerando-o em conformidade com as normas éticas vigentes."
+            : "A CEUA, em reunião plenária, deliberou pela REPROVAÇÃO do uso de animais para este protocolo, devido às inconsistências técnicas ou éticas descritas acima.";
+        
+        Paragraph conclPara = new Paragraph(conclusaoMsg, boldFont);
         conclPara.setAlignment(Element.ALIGN_CENTER);
         borderCell.addElement(conclPara);
 
         // Digital Signature Area
         borderCell.addElement(new Paragraph(" "));
-        borderCell.addElement(new Paragraph(" "));
         
-        // Efeito de Assinatura Digital
         PdfPTable signTable = new PdfPTable(1);
         signTable.setWidthPercentage(50);
         PdfPCell signCell = new PdfPCell();
         signCell.setBorder(Rectangle.NO_BORDER);
         signCell.setHorizontalAlignment(Element.ALIGN_CENTER);
         
-        // Simulação de Assinatura (Texto cursivo ou estilizado)
         Paragraph signText = new Paragraph("Assinado Digitalmente por:", new Font(baseFont, 8, Font.NORMAL, Color.GRAY));
         signText.setAlignment(Element.ALIGN_CENTER);
         signCell.addElement(signText);
         
-        Paragraph nameText = new Paragraph("PRESIDENTE DA CEUA / SCEA", new Font(baseFontBold, 11, Font.NORMAL, new Color(30, 64, 175)));
+        Paragraph nameText = new Paragraph("PRESIDENTE DA CEUA / SCEA", new Font(baseFontBold, 11, Font.NORMAL, themeColor));
         nameText.setAlignment(Element.ALIGN_CENTER);
         signCell.addElement(nameText);
         

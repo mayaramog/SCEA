@@ -6,31 +6,32 @@ import { validateDataRange } from '../utils/dateValidation';
 import api, { Especie, Bioterio } from '../utils/api';
 
 interface ProtocoloWizardProps {
+  initialData?: Protocolo | null;
   onSubmit: (protocolo: Omit<Protocolo, 'id' | 'docenteId' | 'docenteNome' | 'estado' | 'dataCriacao'>) => Promise<void>;
   onCancel: () => void;
 }
 
-export function ProtocoloWizard({ onSubmit, onCancel }: ProtocoloWizardProps) {
+export function ProtocoloWizard({ onSubmit, onCancel, initialData }: ProtocoloWizardProps) {
   const [step, setStep] = useState(1);
   const [especiesList, setEspeciesList] = useState<Especie[]>([]);
   const [bioteriosList, setBioteriosList] = useState<Bioterio[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Passo 1: Textos
-  const [titulo, setTitulo] = useState('');
-  const [objetivo, setObjetivo] = useState('');
-  const [justificativa, setJustificativa] = useState('');
-  const [resumoPt, setResumoPt] = useState('');
-  const [resumoEn, setResumoEn] = useState('');
+  const [titulo, setTitulo] = useState(initialData?.titulo || '');
+  const [objetivo, setObjetivo] = useState(initialData?.objetivo || '');
+  const [justificativa, setJustificativa] = useState(initialData?.justificativa || '');
+  const [resumoPt, setResumoPt] = useState(initialData?.resumoPt || '');
+  const [resumoEn, setResumoEn] = useState(initialData?.resumoEn || '');
   const [errorsStep1, setErrorsStep1] = useState<Record<string, string>>({});
 
   // Passo 2: Datas
-  const [dataInicio, setDataInicio] = useState<Date | null>(null);
-  const [dataTermino, setDataTermino] = useState<Date | null>(null);
+  const [dataInicio, setDataInicio] = useState<Date | null>(initialData ? new Date(initialData.dataInicio) : null);
+  const [dataTermino, setDataTermino] = useState<Date | null>(initialData ? new Date(initialData.dataTermino) : null);
   const [dateError, setDateError] = useState('');
 
   // Passo 3: Alocações
-  const [alocacoes, setAlocacoes] = useState<AlocacaoAnimal[]>([]);
+  const [alocacoes, setAlocacoes] = useState<AlocacaoAnimal[]>(initialData?.alocacoes || []);
   const [especieId, setEspecieId] = useState('');
   const [quantidade, setQuantidade] = useState('');
   const [bioterioId, setBioterioId] = useState('');

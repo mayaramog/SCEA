@@ -147,9 +147,9 @@ export const api = {
   },
 
   async createProtocolo(p: any): Promise<Protocolo> {
-    console.log('DEBUG: Submitting Protocol:', p);
-    const response = await fetch(`${API_BASE_URL}/protocolos`, {
-      method: 'POST',
+    const isEdit = !!p.id;
+    const response = await fetch(`${API_BASE_URL}/protocolos${isEdit ? '/' + p.id : ''}`, {
+      method: isEdit ? 'PUT' : 'POST',
       headers: getHeaders(),
       body: JSON.stringify({
         titulo: p.titulo,
@@ -164,7 +164,7 @@ export const api = {
           bioterioId: a.bioterioId,
           nomeLinhagem: a.nomeLinhagem || 'Wistar',
           quantidadePlanejada: a.quantidade,
-          justificativa: 'Necessário para experimento',
+          justificativa: a.justificativa || 'Necessário para experimento',
           sexo: a.sexo || 'macho'
         }))
       }),
@@ -172,12 +172,18 @@ export const api = {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.detail || 'Falha ao criar protocolo');
+      throw new Error(errorData.detail || `Falha ao ${isEdit ? 'atualizar' : 'criar'} protocolo`);
     }
+
+    if (isEdit) return p;
 
     const id = await response.json();
     const all = await this.fetchProtocolos();
     return all.find(item => item.id === id)!;
+  },
+
+  async updateProtocolo(id: string, p: any): Promise<void> {
+    await this.createProtocolo({ ...p, id });
   },
 
   async fetchEspecies(): Promise<Especie[]> {

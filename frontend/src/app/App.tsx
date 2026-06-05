@@ -26,7 +26,8 @@ export type EstadoProtocolo =
   | 'aguardando_parecer'
   | 'aguardando_deliberacao'
   | 'uso_aprovado'
-  | 'uso_reprovado';
+  | 'uso_reprovado'
+  | 'arquivado';
 
 export interface AlocacaoAnimal {
   id: string;
@@ -35,6 +36,9 @@ export interface AlocacaoAnimal {
   quantidade: number;
   bioterio: string;
   bioterioId: string; // UUID from backend
+  justificativa?: string;
+  nomeLinhagem?: string;
+  sexo?: string;
 }
 
 export interface Protocolo {
@@ -47,6 +51,7 @@ export interface Protocolo {
   resumoEn: string;
   dataInicio: string;
   dataTermino: string;
+  objetivo?: string;
   estado: EstadoProtocolo;
   alocacoes: AlocacaoAnimal[];
   designacoesParecer: any[];
@@ -69,6 +74,7 @@ export default function App() {
   const [showProtocoloWizard, setShowProtocoloWizard] = useState(false);
   const [protocolos, setProtocolos] = useState<Protocolo[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedProtocoloForEdit, setSelectedProtocoloForEdit] = useState<Protocolo | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem('scea_token');
@@ -90,6 +96,7 @@ export default function App() {
         api.fetchProtocolos().then(setProtocolos);
     }
   }, [user, activeRole]);
+
   const handleLogin = (loggedUser: User) => {
     setUser(loggedUser);
     setActiveRole(loggedUser.role);
@@ -103,18 +110,48 @@ export default function App() {
   };
 
   const handleNovoProtocolo = () => {
+    setSelectedProtocoloForEdit(null);
+    setShowProtocoloWizard(true);
+  };
+
+  const handleEditProtocolo = async (p: Protocolo) => {
+    // Buscar detalhes completos (como objetivo) que podem estar faltando no fetch inicial
+    try {
+        const resp = await fetch(`http://localhost:8080/protocolos/${p.id}`, {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('scea_token')}` }
+        });
+        if (resp.ok) {
+            const fullP = await resp.json();
+            setSelectedProtocoloForEdit({
+                ...p,
+                objetivo: fullP.objetivo,
+                resumoPt: fullP.resumo,
+                resumoEn: fullP.resumo
+            });
+        } else {
+            setSelectedProtocoloForEdit(p);
+        }
+    } catch {
+        setSelectedProtocoloForEdit(p);
+    }
     setShowProtocoloWizard(true);
   };
 
   const handleCancelarProtocolo = () => {
     setShowProtocoloWizard(false);
+    setSelectedProtocoloForEdit(null);
   };
 
-  const handleSubmitProtocolo = async (protocolo: any) => {
+  const handleSubmitProtocolo = async (data: any) => {
     try {
-      const criado = await api.createProtocolo(protocolo);
-      setProtocolos(prev => [...prev, criado]);
+      if (selectedProtocoloForEdit) {
+          await api.updateProtocolo(selectedProtocoloForEdit.id, data);
+      } else {
+          await api.createProtocolo(data);
+      }
+      await api.fetchProtocolos().then(setProtocolos);
       setShowProtocoloWizard(false);
+      setSelectedProtocoloForEdit(null);
     } catch (e: any) {
       alert(e.message);
     }
@@ -134,7 +171,7 @@ export default function App() {
         await api.registrarParecer(protocoloId, {
             resumoTecnico,
             consideracoesEticas,
-            recomendacao: decisao // Keeping lowercase as expected by @JsonValue
+            recomendacao: decisao
         });
         await api.fetchProtocolos().then(setProtocolos);
     } catch (e: any) {
@@ -175,6 +212,7 @@ export default function App() {
             onRoleChange={setActiveRole} 
         />
         <ProtocoloWizard
+          initialData={selectedProtocoloForEdit}
           onSubmit={handleSubmitProtocolo}
           onCancel={handleCancelarProtocolo}
         />
@@ -198,6 +236,7 @@ export default function App() {
             user={user}
             protocolos={protocolos}
             onNovoProtocolo={handleNovoProtocolo}
+            onEdit={handleEditProtocolo}
             onRefresh={() => api.fetchProtocolos().then(setProtocolos)}
           />
         )}

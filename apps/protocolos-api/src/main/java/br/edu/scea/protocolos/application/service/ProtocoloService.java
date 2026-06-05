@@ -242,25 +242,24 @@ public class ProtocoloService {
             if (request.quantidadeAnimaisAprovada() != null) {
                 protocolo.setQuantidadeAnimaisAprovada(request.quantidadeAnimaisAprovada());
             }
-            
-            // PUBLICAR EVENTO PARA RABBITMQ
-            publicarEventoAprovacao(protocolo, request.fundamentacao());
         }
+
+        // PUBLICAR EVENTO DE CONCLUSÃO (Aprovação ou Reprovação)
+        publicarEventoConclusao(protocolo, request.fundamentacao(), request.novoEstado() == EstadoProtocolo.APROVADO);
 
         decisaoRepository.save(decisao);
         protocoloRepository.save(protocolo);
     }
 
-    private void publicarEventoAprovacao(ProtocoloEntity p, String justificativa) {
+    private void publicarEventoConclusao(ProtocoloEntity p, String fundamentacao, boolean aprovado) {
         try {
-            // Garantir que temos um e-mail válido para não quebrar o Worker
+            // Garantir que temos um e-mail válido
             String emailDestino = p.getNomePesquisadorResponsavel();
             if (emailDestino == null || !emailDestino.contains("@")) {
-                System.out.println("WARN: E-mail do pesquisador inválido (" + emailDestino + "). Usando fallback secretaria.");
                 emailDestino = "secretariascea@gmail.com";
             }
 
-            // Buscar análise do parecerista (pegar a primeira concluída)
+            // Buscar análise do parecerista
             String analiseParecerista = p.getDesignacoesParecer().stream()
                     .filter(d -> "concluido".equals(d.getEstadoDesignacao()) && d.getParecer() != null)
                     .map(d -> d.getParecer().getResumoTecnico() + " | Ética: " + d.getParecer().getConsideracoesEticas())
@@ -270,7 +269,7 @@ public class ProtocoloService {
             ProtocolApprovedV1 event = new ProtocolApprovedV1(
                 UUID.randomUUID(),
                 Instant.now(),
-                "1.0",
+                aprovado ? "1.0" : "1.0-REPROVADO", // Sinalizar reprovação no schema ou metadado
                 UUID.randomUUID().toString(),
                 "protocolos-api",
                 p.getId(),
@@ -278,12 +277,12 @@ public class ProtocoloService {
                 p.getObjetivo(),
                 p.getResumo(),
                 emailDestino,
-                p.getNomePesquisadorResponsavel(), // Usando o que temos salvo
-                justificativa,
+                p.getNomePesquisadorResponsavel(),
+                fundamentacao,
                 p.getDataInicioPlanejada(),
                 p.getDataTerminoPlanejada(),
                 analiseParecerista,
-                justificativa // A fundamentação da deliberação é a justificativa passada
+                fundamentacao
             );
             
             rabbitTemplate.convertAndSend(
@@ -291,7 +290,7 @@ public class ProtocoloService {
                 RabbitMQConfig.ROUTING_KEY_APROVADO, 
                 event
             );
-            log.info("DEBUG: Evento de aprovação detalhado enviado para RabbitMQ: " + p.getId());
+            log.info("DEBUG: Evento de conclusão ({}) enviado para RabbitMQ: {}", aprovado ? "APROVADO" : "REPROVADO", p.getId());
         } catch (Exception e) {
             log.error("ERRO ao enviar evento para RabbitMQ: " + e.getMessage());
         }

@@ -31,7 +31,10 @@ public class ProtocolApprovedListener {
 
     @RabbitListener(queues = RabbitMQConfig.QUEUE_GERACAO_NAME)
     public void onProtocolApproved(ProtocolApprovedV1 event) {
-        log.info("DEBUG: Iniciando geração de PDF detalhado para protocolo: " + event.protocolId());
+        // Verificar se é aprovação ou reprovação via metadados
+        boolean aprovado = !"1.0-REPROVADO".equals(event.schemaVersion());
+        
+        log.info("DEBUG: Iniciando geração de PDF ({}) para protocolo: {}", aprovado ? "APROVADO" : "REPROVADO", event.protocolId());
 
         try {
             // 1. Gerar o PDF Real usando o serviço melhorado e detalhado
@@ -46,16 +49,17 @@ public class ProtocolApprovedListener {
                 event.dataTermino().toString(),
                 event.occurredAt().toString(),
                 event.parecerTecnico(),
-                event.fundamentacaoDeliberacao()
+                event.fundamentacaoDeliberacao(),
+                aprovado
             );
 
-            String fileName = "certificado_" + event.protocolId() + ".pdf";
+            String fileName = (aprovado ? "certificado_" : "parecer_reprovacao_") + event.protocolId() + ".pdf";
 
             // 2. Salvar no Banco
             RelatorioEntity relatorio = new RelatorioEntity();
             relatorio.setId(UUID.randomUUID());
             relatorio.setProtocoloId(event.protocolId());
-            relatorio.setTipoDocumento("certificado_aprovacao");
+            relatorio.setTipoDocumento(aprovado ? "certificado_aprovacao" : "parecer_reprovacao");
             relatorio.setNomeArquivoOriginal(fileName);
             relatorio.setMimeType("application/pdf");
             relatorio.setCaminhoArmazenamento(fullPath);
@@ -66,11 +70,16 @@ public class ProtocolApprovedListener {
             log.info("DEBUG: PDF gerado e salvo em: " + fullPath);
 
             // 3. Notificar o Worker
+            String subject = aprovado ? "Certificado de Aprovação Ética" : "Comunicado de Reprovação Ética";
+            String msg = aprovado 
+                ? "Olá! Seu protocolo foi APROVADO pela CEUA. O certificado digital assinado está em anexo."
+                : "Olá! Informamos que seu protocolo foi REPROVADO pela CEUA. O parecer detalhado com os motivos está em anexo.";
+
             NotificationEvent notification = new NotificationEvent(
                 UUID.randomUUID(),
-                event.emailPesquisador(), // Usando o e-mail real do evento
-                "Certificado de Aprovação Disponível",
-                "Olá! Seu protocolo " + event.protocolId() + " foi aprovado e o certificado já está disponível em anexo.",
+                event.emailPesquisador(),
+                subject,
+                msg,
                 fullPath
             );
 

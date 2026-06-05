@@ -32,7 +32,6 @@ CREATE SCHEMA scea;
 
 COMMENT ON SCHEMA scea IS 'Schema do SCEA';
 
-
 --
 -- Name: atualizar_timestamp_atualizacao(); Type: FUNCTION; Schema: scea; Owner: postgres
 --
@@ -144,6 +143,7 @@ CREATE TABLE scea.protocolo (
     atualizado_em timestamp with time zone DEFAULT now() NOT NULL,
     arquivado_em timestamp with time zone,
     justificativa text NOT NULL,
+    protocolo_pai_id uuid,
     CONSTRAINT protocol_approved_animal_count_check CHECK ((quantidade_animais_aprovada >= 0)),
     CONSTRAINT protocol_planned_dates_check CHECK ((data_termino_planejada >= data_inicio_planejada)),
     CONSTRAINT protocol_version_check CHECK ((versao_atual >= 1)),
@@ -970,6 +970,9 @@ ALTER TABLE ONLY scea.protocolo_historico_status
 ALTER TABLE ONLY scea.protocolo
     ADD CONSTRAINT protocol_submitter_user_id_fk FOREIGN KEY (id_usuario_submetedor) REFERENCES scea.usuario(id) ON DELETE RESTRICT;
 
+ALTER TABLE ONLY scea.protocolo
+    ADD CONSTRAINT protocol_parent_id_fk FOREIGN KEY (protocolo_pai_id) REFERENCES scea.protocolo(id) ON DELETE SET NULL;
+
 
 --
 -- Name: protocolo_membro_equipe protocol_team_member_protocol_id_fk; Type: FK CONSTRAINT; Schema: scea; Owner: postgres
@@ -1002,6 +1005,7 @@ ALTER TABLE ONLY scea.usuario_papel
 ALTER TABLE ONLY scea.usuario_papel
     ADD CONSTRAINT user_role_user_id_fk FOREIGN KEY (usuario_id) REFERENCES scea.usuario(id) ON DELETE CASCADE;
 
+COMMENT ON COLUMN scea.protocolo.protocolo_pai_id IS 'Referência ao protocolo original (matriz) em caso de emenda (RN06).';
 
 --
 -- PostgreSQL database dump complete

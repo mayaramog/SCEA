@@ -1,22 +1,23 @@
 import { useState, useEffect } from 'react';
 import { User, Protocolo } from '../App';
-import { FileText, Plus, Clock, CheckCircle, XCircle, AlertCircle, Archive, Download } from 'lucide-react';
+import { FileText, Plus, Clock, CheckCircle, XCircle, AlertCircle, Archive, Download, Edit2 } from 'lucide-react';
 import api from '../utils/api';
 
 interface DocenteDashboardProps {
   user: User;
   protocolos: Protocolo[];
   onNovoProtocolo: () => void;
+  onEdit: (p: Protocolo) => void;
   onRefresh: () => void;
 }
 
-export function DocenteDashboard({ user, protocolos, onNovoProtocolo, onRefresh }: DocenteDashboardProps) {
+export function DocenteDashboard({ user, protocolos, onNovoProtocolo, onEdit, onRefresh }: DocenteDashboardProps) {
   const [relatoriosMap, setRelatoriosMap] = useState<Record<string, any[]>>({});
 
   useEffect(() => {
-    // Carregar relatórios para protocolos aprovados
+    // Carregar relatórios para protocolos aprovados ou reprovados (deliberados)
     protocolos
-      .filter(p => p.estado === 'uso_aprovado' && p.docenteId === user.matricula)
+      .filter(p => (p.estado === 'uso_aprovado' || p.estado === 'uso_reprovado') && p.docenteId === user.matricula)
       .forEach(async (p) => {
         if (!relatoriosMap[p.id]) {
             const list = await api.fetchRelatoriosPorProtocolo(p.id);
@@ -181,8 +182,20 @@ export function DocenteDashboard({ user, protocolos, onNovoProtocolo, onRefresh 
                         </div>
                       </td>
                       <td className="px-6 py-4 text-right">
-                         <div className="flex justify-end gap-2">
-                            {protocolo.estado === 'uso_aprovado' && (
+                         <div className="flex justify-end gap-3">
+                            {/* Editar: apenas para protocolos que ainda não entraram em análise profunda ou precisam de ajuste */}
+                            {['aguardando_envio_parecer', 'aguardando_deliberacao'].includes(protocolo.estado) && (
+                                <button 
+                                    onClick={() => onEdit(protocolo)}
+                                    className="text-slate-600 hover:text-blue-600 transition-colors"
+                                    title="Editar Protocolo"
+                                >
+                                    <Edit2 className="w-5 h-5" />
+                                </button>
+                            )}
+
+                            {/* Relatórios/Pareceres: para protocolos deliberados (Aprovado ou Reprovado) */}
+                            {(protocolo.estado === 'uso_aprovado' || protocolo.estado === 'uso_reprovado') && (
                                 <>
                                     {relatoriosMap[protocolo.id]?.length > 0 && (
                                         <button 
@@ -191,20 +204,25 @@ export function DocenteDashboard({ user, protocolos, onNovoProtocolo, onRefresh 
                                                 api.downloadRelatorio(r.id, r.nomeArquivoOriginal);
                                             }}
                                             className="text-blue-600 hover:text-blue-800 transition-colors"
-                                            title="Baixar Certificado"
+                                            title="Baixar Documento Oficial"
                                         >
                                             <Download className="w-5 h-5" />
                                         </button>
                                     )}
-                                    <button 
-                                        onClick={() => handleEmenda(protocolo.id)}
-                                        className="text-orange-600 hover:text-orange-800 transition-colors"
-                                        title="Criar Emenda (Nova Versão)"
-                                    >
-                                        <Plus className="w-5 h-5 border border-orange-600 rounded-sm" />
-                                    </button>
+                                    
+                                    {/* Emenda: APENAS para aprovados */}
+                                    {protocolo.estado === 'uso_aprovado' && (
+                                        <button 
+                                            onClick={() => handleEmenda(protocolo.id)}
+                                            className="text-orange-600 hover:text-orange-800 transition-colors"
+                                            title="Criar Emenda (Nova Versão)"
+                                        >
+                                            <Plus className="w-5 h-5 border border-orange-600 rounded-sm" />
+                                        </button>
+                                    )}
                                 </>
                             )}
+                            
                             <button 
                                 onClick={() => handleArquivar(protocolo.id)}
                                 className="text-slate-400 hover:text-red-500 transition-colors"

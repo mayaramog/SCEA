@@ -65,6 +65,7 @@ public class ProtocoloEntity {
     @Column(name = "atualizado_em")
     private LocalDateTime atualizadoEm;
 
+    @com.fasterxml.jackson.annotation.JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "protocolo_pai_id")
     private ProtocoloEntity protocoloPai;
