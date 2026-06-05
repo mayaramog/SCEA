@@ -15,13 +15,15 @@ export function DocenteDashboard({ user, protocolos, onNovoProtocolo, onEdit, on
   const [relatoriosMap, setRelatoriosMap] = useState<Record<string, any[]>>({});
 
   useEffect(() => {
-    // Carregar relatórios para protocolos deliberados
+    // Carregar relatórios para TODOS os protocolos do docente para exibir Dossiê Digital
     protocolos
-      .filter(p => (p.estado === 'uso_aprovado' || p.estado === 'uso_reprovado') && p.docenteId === user.matricula)
+      .filter(p => p.docenteId === user.matricula)
       .forEach(async (p) => {
         if (!relatoriosMap[p.id]) {
             const list = await api.fetchRelatoriosPorProtocolo(p.id);
-            setRelatoriosMap(prev => ({ ...prev, [p.id]: list }));
+            if (list.length > 0) {
+                setRelatoriosMap(prev => ({ ...prev, [p.id]: list }));
+            }
         }
       });
   }, [protocolos, user.matricula]);
@@ -129,7 +131,7 @@ export function DocenteDashboard({ user, protocolos, onNovoProtocolo, onEdit, on
                   )}
                   
                   {/* EMENDA: apenas aprovados e não arquivados */}
-                  {!isArchived && p.estado === 'uso_aprovado' && (
+                  {!isArchived && (p.estado === 'uso_aprovado' || p.estado === 'uso_reprovado') && (
                     <button onClick={() => handleEmenda(p.id)} className="text-orange-600 hover:text-orange-800" title="Criar Emenda">
                       <Plus className="w-5 h-5 border border-orange-600 rounded-sm" />
                     </button>

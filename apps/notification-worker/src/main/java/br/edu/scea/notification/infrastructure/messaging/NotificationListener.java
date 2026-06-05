@@ -44,7 +44,7 @@ public class NotificationListener {
         );
     }
 
-    @RabbitListener(queues = RabbitMQConfig.QUEUE_NAME)
+    @RabbitListener(queues = RabbitMQConfig.QUEUE_DESIGNACAO_NAME)
     public void onReviewerAssigned(ReviewerAssignedV1 event) {
         log.info("DEBUG: Notificando parecerista: {}", event.pareceristaEmail());
         emailService.sendEmail(
@@ -55,15 +55,16 @@ public class NotificationListener {
         );
     }
 
-    @RabbitListener(queues = RabbitMQConfig.QUEUE_NAME)
+    @RabbitListener(queues = RabbitMQConfig.QUEUE_PARECER_NAME)
     public void onReviewSubmitted(ReviewSubmittedV1 event) {
         log.info("DEBUG: Notificando secretaria sobre parecer concluído: {}", event.codigoProtocolo());
         String path = "/app/storage/reports/parecer_tecnico_" + event.protocolId() + ".pdf";
         emailService.sendEmail(
             "secretariascea@gmail.com",
             "Parecer Técnico Concluído - " + event.codigoProtocolo(),
-            "Informamos que o parecerista finalizou a análise técnica do protocolo " + event.codigoProtocolo() + ". O documento está em anexo.",
+            "Informamos que o parecerista finalizou a análise do protocolo " + event.codigoProtocolo() + ". O documento está em anexo.",
             path
         );
     }
+
 }

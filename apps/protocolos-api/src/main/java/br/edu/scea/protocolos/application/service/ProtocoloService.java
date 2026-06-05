@@ -53,8 +53,8 @@ public class ProtocoloService {
         ProtocoloEntity original = protocoloRepository.findById(protocoloId)
                 .orElseThrow(() -> new RuntimeException("Protocolo original não encontrado"));
 
-        if (original.getEstado() != EstadoProtocolo.APROVADO) {
-            throw new IllegalStateException("Apenas protocolos aprovados podem sofrer emendas.");
+        if (original.getEstado() != EstadoProtocolo.APROVADO || original.getEstado() != EstadoProtocolo.REPROVADO) {
+            throw new IllegalStateException("Apenas protocolos que passaram pro deliberação da presidência podem sofrer emendas.");
         }
 
         UUID usuarioId = getUsuarioLogadoId();

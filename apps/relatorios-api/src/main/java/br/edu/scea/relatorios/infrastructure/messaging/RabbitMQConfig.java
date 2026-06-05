@@ -14,13 +14,13 @@ public class RabbitMQConfig {
     public static final String QUEUE_NOTIFICACAO_NAME = "notificacoes.emails";
     public static final String QUEUE_SUBMISSAO_NAME = "relatorios.submissao";
     public static final String QUEUE_PARECER_NAME = "relatorios.parecer";
+    public static final String QUEUE_REUNIAO_NAME = "relatorios.reunioes";
     
     public static final String ROUTING_KEY_APROVADO = "protocolo.aprovado";
     public static final String ROUTING_KEY_SUBMETIDO = "protocolo.submetido";
     public static final String ROUTING_KEY_PARECER = "protocolo.parecer";
     public static final String ROUTING_KEY_NOTIFICAR = "notificacao.enviar";
     public static final String ROUTING_KEY_REUNIAO_FIM = "protocolo.reuniao_finalizada";
-    public static final String ROUTING_KEY_DESIGNADO = "protocolo.designado";
 
     @Bean
     public TopicExchange exchange() {
@@ -46,28 +46,34 @@ public class RabbitMQConfig {
     }
 
     @Bean
+    @Qualifier("queueReuniao")
+    public Queue queueReuniao() {
+        return new Queue(QUEUE_REUNIAO_NAME, true);
+    }
+
+    @Bean
     @Qualifier("queueNotificacao")
     public Queue queueNotificacao() {
         return new Queue(QUEUE_NOTIFICACAO_NAME, true);
     }
 
     @Bean
-    public Binding bindingGeracao(@Qualifier("queueGeracao") Queue queueGeracao, TopicExchange exchange) {
-        return BindingBuilder.bind(queueGeracao).to(exchange).with(ROUTING_KEY_APROVADO);
+    public Binding bindingGeracao(@Qualifier("queueGeracao") Queue queue, TopicExchange exchange) {
+        return BindingBuilder.bind(queue).to(exchange).with(ROUTING_KEY_APROVADO);
     }
 
     @Bean
-    public Binding bindingSubmissao(@Qualifier("queueSubmissao") Queue queueSubmissao, TopicExchange exchange) {
-        return BindingBuilder.bind(queueSubmissao).to(exchange).with(ROUTING_KEY_SUBMETIDO);
+    public Binding bindingSubmissao(@Qualifier("queueSubmissao") Queue queue, TopicExchange exchange) {
+        return BindingBuilder.bind(queue).to(exchange).with(ROUTING_KEY_SUBMETIDO);
     }
 
     @Bean
-    public Binding bindingParecer(@Qualifier("queueParecer") Queue queueParecer, TopicExchange exchange) {
-        return BindingBuilder.bind(queueParecer).to(exchange).with(ROUTING_KEY_PARECER);
+    public Binding bindingParecer(@Qualifier("queueParecer") Queue queue, TopicExchange exchange) {
+        return BindingBuilder.bind(queue).to(exchange).with(ROUTING_KEY_PARECER);
     }
 
     @Bean
-    public Binding bindingReuniao(@Qualifier("queueGeracao") Queue queue, TopicExchange exchange) {
+    public Binding bindingReuniao(@Qualifier("queueReuniao") Queue queue, TopicExchange exchange) {
         return BindingBuilder.bind(queue).to(exchange).with(ROUTING_KEY_REUNIAO_FIM);
     }
 
