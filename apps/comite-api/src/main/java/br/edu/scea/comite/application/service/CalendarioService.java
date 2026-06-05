@@ -21,6 +21,8 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class CalendarioService {
 
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CalendarioService.class);
+
     private final Map<Integer, Set<LocalDate>> cacheFeriados = new ConcurrentHashMap<>();
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
@@ -93,7 +95,7 @@ public class CalendarioService {
                 return datas;
             }
         } catch (Exception e) {
-            System.err.println("ERRO ao buscar feriados no Comitê: " + e.getMessage());
+            log.error("ERRO ao buscar feriados no Comitê: " + e.getMessage());
         }
         return Collections.emptySet();
     }

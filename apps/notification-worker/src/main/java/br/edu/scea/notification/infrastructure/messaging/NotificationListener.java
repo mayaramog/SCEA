@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 public class NotificationListener {
 
     private final EmailService emailService;
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(NotificationListener.class);
 
     public NotificationListener(EmailService emailService) {
         this.emailService = emailService;
@@ -16,8 +17,8 @@ public class NotificationListener {
 
     @RabbitListener(queues = RabbitMQConfig.QUEUE_NAME)
     public void onNotificationRequest(NotificationEvent event) {
-        System.out.println("DEBUG: Processando pedido de notificação para: " + event.recipient());
-        
+        log.debug("DEBUG: Processando pedido de notificação para: " + event.recipient());
+
         emailService.sendEmail(
             event.recipient(),
             event.subject(),

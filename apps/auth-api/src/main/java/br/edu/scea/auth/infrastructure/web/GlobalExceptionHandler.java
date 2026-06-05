@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
     @ExceptionHandler(BadCredentialsException.class)
     public ProblemDetail handleBadCredentials(BadCredentialsException ex) {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, "Usuário ou senha inválidos");
@@ -18,7 +20,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ProblemDetail handleGeneral(Exception ex) {
-        ex.printStackTrace(); // Log stack trace for debugging
+        log.error(ex.getMessage());
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
         pd.setTitle("Erro Interno");
         return pd;

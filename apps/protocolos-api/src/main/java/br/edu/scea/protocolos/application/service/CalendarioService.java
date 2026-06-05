@@ -20,6 +20,8 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class CalendarioService {
 
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CalendarioService.class);
+
     private final Map<Integer, Set<LocalDate>> cacheFeriados = new ConcurrentHashMap<>();
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
@@ -75,7 +77,7 @@ public class CalendarioService {
 
     private Set<LocalDate> buscarFeriadosNaApi(int ano) {
         try {
-            System.out.println("DEBUG: Chamando Brasil API para feriados de " + ano);
+            log.info("DEBUG: Chamando Brasil API para feriados de " + ano);
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create("https://brasilapi.com.br/api/feriados/v1/" + ano))
                     .timeout(Duration.ofSeconds(10))
@@ -90,13 +92,13 @@ public class CalendarioService {
                 for (FeriadoDTO f : lista) {
                     datas.add(f.date());
                 }
-                System.out.println("DEBUG: Sucesso! " + datas.size() + " feriados carregados para " + ano);
+                log.info("DEBUG: Sucesso! " + datas.size() + " feriados carregados para " + ano);
                 return datas;
             } else {
-                System.err.println("AVISO: Brasil API retornou status " + response.statusCode());
+                log.error("AVISO: Brasil API retornou status " + response.statusCode());
             }
         } catch (Exception e) {
-            System.err.println("ERRO ao buscar feriados na API: " + e.getMessage());
+            log.error("ERRO ao buscar feriados na API: " + e.getMessage());
         }
         return Collections.emptySet();
     }
