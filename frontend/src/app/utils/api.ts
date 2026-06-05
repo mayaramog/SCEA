@@ -332,6 +332,15 @@ export const api = {
     if (!resp.ok) throw new Error('Falha ao arquivar protocolo');
   },
 
+  async criarEmenda(protocoloId: string): Promise<string> {
+    const resp = await fetch(`${API_BASE_URL}/protocolos/${protocoloId}/emenda`, {
+        method: 'POST',
+        headers: getHeaders(),
+    });
+    if (!resp.ok) throw new Error('Falha ao criar emenda');
+    return resp.json();
+  },
+
   async designarParecerista(protocoloId: string, pareceristaId: string): Promise<void> {
     const prazo = new Date();
     prazo.setDate(prazo.getDate() + 30); // Prazo padrão de 30 dias

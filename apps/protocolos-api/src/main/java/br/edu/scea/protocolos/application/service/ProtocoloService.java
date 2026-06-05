@@ -49,6 +49,55 @@ public class ProtocoloService {
         this.rabbitTemplate = rabbitTemplate;
     }
 
+    @Transactional
+    public UUID criarEmenda(UUID protocoloId) {
+        ProtocoloEntity original = protocoloRepository.findById(protocoloId)
+                .orElseThrow(() -> new RuntimeException("Protocolo original não encontrado"));
+
+        if (original.getEstado() != EstadoProtocolo.APROVADO) {
+            throw new IllegalStateException("Apenas protocolos aprovados podem sofrer emendas.");
+        }
+
+        UUID usuarioId = getUsuarioLogadoId();
+        String codigoEmenda = original.getCodigoProtocolo() + "-EM" + (original.getEmendas().size() + 1);
+
+        ProtocoloEntity emenda = new ProtocoloEntity();
+        emenda.setId(UUID.randomUUID());
+        emenda.setProtocoloPai(original);
+        emenda.setCodigoProtocolo(codigoEmenda);
+        emenda.setTitulo(original.getTitulo() + " (Emenda)");
+        emenda.setObjetivo(original.getObjetivo());
+        emenda.setResumo(original.getResumo());
+        emenda.setJustificativa("Emenda ao protocolo original " + original.getCodigoProtocolo());
+        emenda.setVersaoAtual(original.getVersaoAtual() + 1);
+        emenda.setEstado(EstadoProtocolo.SUBMETIDO);
+        emenda.setDataSubmissao(LocalDate.now());
+        emenda.setDataInicioPlanejada(original.getDataInicioPlanejada());
+        emenda.setDataTerminoPlanejada(original.getDataTerminoPlanejada());
+        emenda.setQuantidadeAnimaisAprovada(0);
+        emenda.setCriadoEm(LocalDateTime.now());
+        emenda.setAtualizadoEm(LocalDateTime.now());
+        emenda.setIdUsuarioSubmetedor(usuarioId);
+        emenda.setNomePesquisadorResponsavel(original.getNomePesquisadorResponsavel());
+
+        // Clonar alocações
+        emenda.setAlocacoes(original.getAlocacoes().stream().map(a -> {
+            AlocacaoBiologicaEntity nova = new AlocacaoBiologicaEntity();
+            nova.setId(UUID.randomUUID());
+            nova.setProtocolo(emenda);
+            nova.setEspecieId(a.getEspecieId());
+            nova.setBioterioId(a.getBioterioId());
+            nova.setNomeLinhagem(a.getNomeLinhagem());
+            nova.setQuantidadePlanejada(a.getQuantidadePlanejada());
+            nova.setJustificativa(a.getJustificativa());
+            nova.setSexo(a.getSexo());
+            nova.setCriadoEm(LocalDateTime.now());
+            return nova;
+        }).collect(Collectors.toList()));
+
+        return protocoloRepository.save(emenda).getId();
+    }
+
     public List<ProtocoloEntity> listar() {
         return protocoloRepository.findAll();
     }

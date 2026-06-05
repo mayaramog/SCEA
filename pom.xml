@@ -20,6 +20,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <spring-boot.version>4.0.6</spring-boot.version>
         <spring-cloud.version>2025.1.1</spring-cloud.version>
+        <sonar.organization>gustavo-cortez</sonar.organization>
     </properties>
 <modules>
     <module>packages/shared-contracts</module>

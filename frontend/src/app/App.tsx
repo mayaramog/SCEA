@@ -198,6 +198,7 @@ export default function App() {
             user={user}
             protocolos={protocolos}
             onNovoProtocolo={handleNovoProtocolo}
+            onRefresh={() => api.fetchProtocolos().then(setProtocolos)}
           />
         )}
 

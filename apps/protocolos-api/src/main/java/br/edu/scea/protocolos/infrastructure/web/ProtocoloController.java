@@ -82,6 +82,14 @@ public class ProtocoloController {
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping("/{id}/emenda")
+    @PreAuthorize("hasRole('DOCENTE')")
+    @Operation(summary = "Criar uma emenda baseada em um protocolo aprovado (RF07)")
+    public ResponseEntity<UUID> criarEmenda(@PathVariable("id") UUID id) {
+        UUID novaId = protocoloService.criarEmenda(id);
+        return ResponseEntity.ok(novaId);
+    }
+
     @DeleteMapping("/{id}")
     @Operation(summary = "Arquivar (soft-delete) um protocolo")
     public ResponseEntity<Void> arquivar(@PathVariable("id") UUID id) {

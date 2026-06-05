@@ -68,6 +68,15 @@ export function DocenteDashboard({ user, protocolos, onNovoProtocolo, onRefresh 
     } catch (e: any) { alert(e.message); }
   };
 
+  const handleEmenda = async (id: string) => {
+    if (!confirm('Deseja criar uma emenda para este protocolo? O original será mantido como histórico e uma nova versão será gerada para edição.')) return;
+    try {
+        await api.criarEmenda(id);
+        alert('Emenda criada com sucesso! Verifique sua lista de submissões.');
+        onRefresh();
+    } catch (e: any) { alert(e.message); }
+  };
+
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="flex items-center justify-between">
@@ -173,17 +182,28 @@ export function DocenteDashboard({ user, protocolos, onNovoProtocolo, onRefresh 
                       </td>
                       <td className="px-6 py-4 text-right">
                          <div className="flex justify-end gap-2">
-                            {protocolo.estado === 'uso_aprovado' && relatoriosMap[protocolo.id]?.length > 0 && (
-                                <button 
-                                    onClick={() => {
-                                        const r = relatoriosMap[protocolo.id][0];
-                                        api.downloadRelatorio(r.id, r.nomeArquivoOriginal);
-                                    }}
-                                    className="text-blue-600 hover:text-blue-800 transition-colors"
-                                    title="Baixar Certificado"
-                                >
-                                    <Download className="w-5 h-5" />
-                                </button>
+                            {protocolo.estado === 'uso_aprovado' && (
+                                <>
+                                    {relatoriosMap[protocolo.id]?.length > 0 && (
+                                        <button 
+                                            onClick={() => {
+                                                const r = relatoriosMap[protocolo.id][0];
+                                                api.downloadRelatorio(r.id, r.nomeArquivoOriginal);
+                                            }}
+                                            className="text-blue-600 hover:text-blue-800 transition-colors"
+                                            title="Baixar Certificado"
+                                        >
+                                            <Download className="w-5 h-5" />
+                                        </button>
+                                    )}
+                                    <button 
+                                        onClick={() => handleEmenda(protocolo.id)}
+                                        className="text-orange-600 hover:text-orange-800 transition-colors"
+                                        title="Criar Emenda (Nova Versão)"
+                                    >
+                                        <Plus className="w-5 h-5 border border-orange-600 rounded-sm" />
+                                    </button>
+                                </>
                             )}
                             <button 
                                 onClick={() => handleArquivar(protocolo.id)}

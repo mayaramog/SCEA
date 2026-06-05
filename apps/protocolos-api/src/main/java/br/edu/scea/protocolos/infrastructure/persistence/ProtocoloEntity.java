@@ -65,6 +65,13 @@ public class ProtocoloEntity {
     @Column(name = "atualizado_em")
     private LocalDateTime atualizadoEm;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "protocolo_pai_id")
+    private ProtocoloEntity protocoloPai;
+
+    @OneToMany(mappedBy = "protocoloPai", cascade = CascadeType.ALL)
+    private List<ProtocoloEntity> emendas = new ArrayList<>();
+
     @OneToMany(mappedBy = "protocolo", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AlocacaoBiologicaEntity> alocacoes = new ArrayList<>();
 
@@ -129,6 +136,11 @@ public class ProtocoloEntity {
     public void setCriadoEm(LocalDateTime criadoEm) { this.criadoEm = criadoEm; }
     public LocalDateTime getAtualizadoEm() { return atualizadoEm; }
     public void setAtualizadoEm(LocalDateTime atualizadoEm) { this.atualizadoEm = atualizadoEm; }
+    
+    public ProtocoloEntity getProtocoloPai() { return protocoloPai; }
+    public void setProtocoloPai(ProtocoloEntity protocoloPai) { this.protocoloPai = protocoloPai; }
+    public List<ProtocoloEntity> getEmendas() { return emendas; }
+    public void setEmendas(List<ProtocoloEntity> emendas) { this.emendas = emendas; }
     
     public List<AlocacaoBiologicaEntity> getAlocacoes() { return alocacoes; }
     public void setAlocacoes(List<AlocacaoBiologicaEntity> alocacoes) { this.alocacoes = alocacoes; }
