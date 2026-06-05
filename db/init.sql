@@ -144,6 +144,7 @@ CREATE TABLE scea.protocolo (
     arquivado_em timestamp with time zone,
     justificativa text NOT NULL,
     protocolo_pai_id uuid,
+    ativo boolean DEFAULT true NOT NULL,
     CONSTRAINT protocol_approved_animal_count_check CHECK ((quantidade_animais_aprovada >= 0)),
     CONSTRAINT protocol_planned_dates_check CHECK ((data_termino_planejada >= data_inicio_planejada)),
     CONSTRAINT protocol_version_check CHECK ((versao_atual >= 1)),

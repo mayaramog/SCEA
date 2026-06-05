@@ -95,7 +95,7 @@ export const api = {
   },
 
   async fetchProtocolos(): Promise<Protocolo[]> {
-    // Busca protocolos, espécies e biotérios em paralelo para "traduzir" os IDs em nomes
+    // Busca protocolos, espécies e biotérios em paralelo
     const [response, especies, bioterios] = await Promise.all([
       fetch(`${API_BASE_URL}/protocolos`, { headers: getHeaders() }),
       this.fetchEspecies(),
@@ -106,9 +106,7 @@ export const api = {
 
     const data = await response.json();
     
-    // For each protocol, we fetch its designações to ensure the dashboard has all info
     const fullProtocolos = await Promise.all(data.map(async (p: any) => {
-        // Optimization: only fetch if not present
         if (!p.designacoesParecer || p.designacoesParecer.length === 0) {
             const dResp = await fetch(`${API_BASE_URL}/protocolos/${p.id}/designacoes`, { headers: getHeaders() });
             if (dResp.ok) {
@@ -142,7 +140,8 @@ export const api = {
         };
       }),
       dataCriacao: p.criadoEm,
-      designacoesParecer: p.designacoesParecer || []
+      designacoesParecer: p.designacoesParecer || [],
+      ativo: p.ativo // MAP ATIVO FIELD
     }));
   },
 
@@ -175,7 +174,10 @@ export const api = {
       throw new Error(errorData.detail || `Falha ao ${isEdit ? 'atualizar' : 'criar'} protocolo`);
     }
 
-    if (isEdit) return p;
+    if (isEdit) {
+        const all = await this.fetchProtocolos();
+        return all.find(item => item.id === p.id)!;
+    }
 
     const id = await response.json();
     const all = await this.fetchProtocolos();
@@ -220,7 +222,6 @@ export const api = {
     if (!resp.ok) return [];
     const data = await resp.json();
     
-    // For each meeting, we fetch details to ensure pauta is populated
     const fullReunioes = await Promise.all(data.map(async (r: any) => {
         const dResp = await fetch(`${API_BASE_URL}/comite/reunioes/${r.id}`, { headers: getHeaders() });
         if (dResp.ok) {
@@ -247,7 +248,7 @@ export const api = {
       body: JSON.stringify(r),
     });
     if (!resp.ok) throw new Error('Falha ao criar reunião');
-    return resp.json(); // Reverted to raw return
+    return resp.json();
   },
 
   async updateReuniaoEstado(id: string, novoEstado: string): Promise<void> {
@@ -349,7 +350,7 @@ export const api = {
 
   async designarParecerista(protocoloId: string, pareceristaId: string): Promise<void> {
     const prazo = new Date();
-    prazo.setDate(prazo.getDate() + 30); // Prazo padrão de 30 dias
+    prazo.setDate(prazo.getDate() + 30); 
 
     const resp = await fetch(`${API_BASE_URL}/protocolos/${protocoloId}/designar`, {
       method: 'POST',
@@ -408,7 +409,8 @@ export const api = {
       'em_analise_ceua': 'aguardando_parecer',
       'pendencia_solicitada': 'aguardando_deliberacao',
       'aprovado': 'uso_aprovado',
-      'reprovado': 'uso_reprovado'
+      'reprovado': 'uso_reprovado',
+      'arquivado': 'arquivado'
     };
     return mapping[backendEstado] || 'aguardando_envio_parecer';
   },

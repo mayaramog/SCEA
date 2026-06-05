@@ -56,6 +56,7 @@ export interface Protocolo {
   alocacoes: AlocacaoAnimal[];
   designacoesParecer: any[];
   dataCriacao: string;
+  ativo: boolean;
 }
 
 export interface Reuniao {

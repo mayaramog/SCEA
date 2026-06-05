@@ -59,6 +59,9 @@ public class ProtocoloEntity {
     @Column(name = "justificativa")
     private String justificativa;
 
+    @Column(name = "ativo", nullable = false)
+    private boolean ativo = true;
+
     @Column(name = "criado_em")
     private LocalDateTime criadoEm;
 
@@ -133,6 +136,9 @@ public class ProtocoloEntity {
     public void setObservacoes(String observacoes) { this.observacoes = observacoes; }
     public String getJustificativa() { return justificativa; }
     public void setJustificativa(String justificativa) { this.justificativa = justificativa; }
+    public boolean isAtivo() { return ativo; }
+    public void setAtivo(boolean ativo) { this.ativo = ativo; }
+
     public LocalDateTime getCriadoEm() { return criadoEm; }
     public void setCriadoEm(LocalDateTime criadoEm) { this.criadoEm = criadoEm; }
     public LocalDateTime getAtualizadoEm() { return atualizadoEm; }

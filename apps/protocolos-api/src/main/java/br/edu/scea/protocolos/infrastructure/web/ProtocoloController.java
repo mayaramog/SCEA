@@ -120,7 +120,10 @@ public class ProtocoloController {
     public ResponseEntity<Void> arquivar(@PathVariable("id") UUID id) {
         ProtocoloEntity protocolo = protocoloRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Protocolo não encontrado"));
+        protocolo.setAtivo(false);
         protocolo.setEstado(br.edu.scea.shared.enums.EstadoProtocolo.ARQUIVADO);
+        protocolo.setAtualizadoEm(java.time.LocalDateTime.now());
+        // Se houver campo arquivado_em futuramente, setar aqui
         protocoloRepository.save(protocolo);
         return ResponseEntity.ok().build();
     }

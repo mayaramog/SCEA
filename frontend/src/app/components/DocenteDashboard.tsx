@@ -15,7 +15,7 @@ export function DocenteDashboard({ user, protocolos, onNovoProtocolo, onEdit, on
   const [relatoriosMap, setRelatoriosMap] = useState<Record<string, any[]>>({});
 
   useEffect(() => {
-    // Carregar relatórios para protocolos aprovados ou reprovados (deliberados)
+    // Carregar relatórios para protocolos deliberados
     protocolos
       .filter(p => (p.estado === 'uso_aprovado' || p.estado === 'uso_reprovado') && p.docenteId === user.matricula)
       .forEach(async (p) => {
@@ -28,41 +28,20 @@ export function DocenteDashboard({ user, protocolos, onNovoProtocolo, onEdit, on
 
   const getEstadoIcon = (estado: string) => {
     switch (estado) {
-      case 'aguardando_envio_parecer':
-        return <Clock className="w-5 h-5 text-yellow-600" aria-hidden="true" />;
-      case 'aguardando_parecer':
-        return <Clock className="w-5 h-5 text-blue-600" aria-hidden="true" />;
-      case 'aguardando_deliberacao':
-        return <AlertCircle className="w-5 h-5 text-orange-600" aria-hidden="true" />;
-      case 'uso_aprovado':
-        return <CheckCircle className="w-5 h-5 text-green-600" aria-hidden="true" />;
-      case 'uso_reprovado':
-        return <XCircle className="w-5 h-5 text-red-600" aria-hidden="true" />;
-      case 'arquivado':
-        return <Archive className="w-5 h-5 text-slate-400" aria-hidden="true" />;
-      default:
-        return null;
+      case 'aguardando_envio_parecer': return <Clock className="w-5 h-5 text-blue-500" />;
+      case 'aguardando_parecer': return <Clock className="w-5 h-5 text-orange-500" />;
+      case 'aguardando_deliberacao': return <AlertCircle className="w-5 h-5 text-purple-500" />;
+      case 'uso_aprovado': return <CheckCircle className="w-5 h-5 text-green-500" />;
+      case 'uso_reprovado': return <XCircle className="w-5 h-5 text-red-500" />;
+      default: return <Clock className="w-5 h-5 text-slate-400" />;
     }
   };
 
-  const getEstadoText = (estado: string) => {
-    const estados = {
-      aguardando_envio_parecer: 'Aguardando envio para parecer',
-      aguardando_parecer: 'Aguardando parecer',
-      aguardando_deliberacao: 'Aguardando deliberação',
-      uso_aprovado: 'Uso aprovado',
-      uso_reprovado: 'Uso reprovado',
-      arquivado: 'Arquivado'
-    };
-    return estados[estado as keyof typeof estados] || estado;
-  };
-
-  // Filtrar apenas protocolos onde este usuário é o submetedor e não estão arquivados (a menos que queiramos ver histórico)
-  const meusProtocolos = protocolos.filter(p => p.docenteId === user.matricula && p.estado !== 'arquivado');
-  const meusArquivados = protocolos.filter(p => p.docenteId === user.matricula && p.estado === 'arquivado');
+  const meusProtocolosAtivos = protocolos.filter(p => p.docenteId === user.matricula && p.ativo !== false);
+  const meusArquivados = protocolos.filter(p => p.docenteId === user.matricula && p.ativo === false);
 
   const handleArquivar = async (id: string) => {
-    if (!confirm('Deseja realmente arquivar este protocolo? Ele não poderá mais ser editado.')) return;
+    if (!confirm('Deseja realmente arquivar este protocolo? Ele será movido para o histórico de arquivados.')) return;
     try {
         await api.arquivarProtocolo(id);
         onRefresh();
@@ -78,190 +57,99 @@ export function DocenteDashboard({ user, protocolos, onNovoProtocolo, onEdit, on
     } catch (e: any) { alert(e.message); }
   };
 
+  const ProtocolTable = ({ list, isArchived = false }: { list: Protocolo[], isArchived?: boolean }) => (
+    <div className={`bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden ${isArchived ? 'opacity-70 grayscale-[0.3]' : ''}`}>
+      <table className="w-full text-left border-collapse">
+        <thead className="bg-slate-50 border-b border-slate-200">
+          <tr>
+            <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Código / Título</th>
+            <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Estado</th>
+            <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase text-right">Ações</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-slate-100">
+          {list.length === 0 && (
+            <tr>
+              <td colSpan={3} className="px-6 py-12 text-center text-slate-400 italic">
+                Nenhum protocolo encontrado.
+              </td>
+            </tr>
+          )}
+          {list.map((p) => (
+            <tr key={p.id} className="hover:bg-slate-50 transition-colors">
+              <td className="px-6 py-4">
+                <div className="flex flex-col">
+                  <span className="text-xs font-mono text-blue-600 font-bold">{p.id.substring(0, 8).toUpperCase()}</span>
+                  <span className="font-bold text-slate-900">{p.titulo}</span>
+                </div>
+              </td>
+              <td className="px-6 py-4">
+                <div className="flex items-center gap-2">
+                  {getEstadoIcon(p.estado)}
+                  <span className="text-sm font-medium text-slate-600 capitalize">
+                    {p.estado.replace(/_/g, ' ')}
+                  </span>
+                </div>
+              </td>
+              <td className="px-6 py-4 text-right">
+                <div className="flex justify-end gap-3">
+                  {!isArchived && p.estado === 'aguardando_envio_parecer' && (
+                    <button onClick={() => onEdit(p)} className="text-slate-600 hover:text-blue-600" title="Editar">
+                      <Edit2 className="w-5 h-5" />
+                    </button>
+                  )}
+                  {(p.estado === 'uso_aprovado' || p.estado === 'uso_reprovado') && relatoriosMap[p.id]?.length > 0 && (
+                    <button 
+                      onClick={() => api.downloadRelatorio(relatoriosMap[p.id][0].id, relatoriosMap[p.id][0].nomeArquivoOriginal)}
+                      className="text-blue-600 hover:text-blue-800" title="Baixar Documento"
+                    >
+                      <Download className="w-5 h-5" />
+                    </button>
+                  )}
+                  {!isArchived && p.estado === 'uso_aprovado' && (
+                    <button onClick={() => handleEmenda(p.id)} className="text-orange-600 hover:text-orange-800" title="Criar Emenda">
+                      <Plus className="w-5 h-5 border border-orange-600 rounded-sm" />
+                    </button>
+                  )}
+                  {!isArchived && (
+                    <button onClick={() => handleArquivar(p.id)} className="text-slate-400 hover:text-red-500" title="Arquivar">
+                      <Archive className="w-5 h-5" />
+                    </button>
+                  )}
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold text-slate-900">Dashboard do Pesquisador</h2>
-          <p className="text-slate-600 mt-1">Gerencie suas submissões de protocolos</p>
+    <div className="space-y-10 animate-in fade-in duration-500">
+      <section>
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h2 className="text-2xl font-bold text-slate-900">Protocolos Ativos</h2>
+            <p className="text-slate-500">Submissões em andamento ou aprovadas para uso.</p>
+          </div>
+          <button onClick={onNovoProtocolo} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 shadow-lg">
+            <Plus className="w-5 h-5" /> Nova Submissão
+          </button>
         </div>
-
-        <button
-          onClick={onNovoProtocolo}
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold transition-all shadow-lg hover:shadow-xl"
-        >
-          <Plus className="w-5 h-5" aria-hidden="true" />
-          <span>Novo Protocolo</span>
-        </button>
-      </div>
-
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-bold text-slate-600 uppercase">Total Submetidos</span>
-            <FileText className="w-5 h-5 text-slate-400" aria-hidden="true" />
-          </div>
-          <p className="text-4xl font-black text-slate-900">{meusProtocolos.length}</p>
-        </div>
-
-        <div className="bg-white rounded-2xl border border-yellow-200 bg-yellow-50/30 p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-bold text-yellow-800 uppercase">Em Análise</span>
-            <Clock className="w-5 h-5 text-yellow-600" aria-hidden="true" />
-          </div>
-          <p className="text-4xl font-black text-yellow-900">
-            {meusProtocolos.filter(p => ['aguardando_envio_parecer', 'aguardando_parecer', 'aguardando_deliberacao'].includes(p.estado)).length}
-          </p>
-        </div>
-
-        <div className="bg-white rounded-2xl border border-green-200 bg-green-50/30 p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-bold text-green-800 uppercase">Aprovados</span>
-            <CheckCircle className="w-5 h-5 text-green-600" aria-hidden="true" />
-          </div>
-          <p className="text-4xl font-black text-green-900">
-            {meusProtocolos.filter(p => p.estado === 'uso_aprovado').length}
-          </p>
-        </div>
-      </div>
-
-      {/* Meus Protocolos */}
-      <section aria-labelledby="meus-protocolos-heading">
-        <h3 id="meus-protocolos-heading" className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
-           <FileText className="w-5 h-5 text-blue-600" />
-           Minhas Submissões
-        </h3>
-
-        {meusProtocolos.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center shadow-sm">
-            <FileText className="w-16 h-16 text-slate-300 mx-auto mb-4" aria-hidden="true" />
-            <p className="text-slate-600 mb-4 font-medium">Você ainda não submeteu nenhum protocolo</p>
-            <button
-              onClick={onNovoProtocolo}
-              className="inline-flex items-center gap-2 bg-blue-50 text-blue-600 hover:bg-blue-100 font-bold rounded-xl px-6 py-2 transition-all border border-blue-200"
-            >
-              <Plus className="w-5 h-5" aria-hidden="true" />
-              <span>Submeter Primeiro Protocolo</span>
-            </button>
-          </div>
-        ) : (
-          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-slate-50 border-b">
-                  <tr>
-                    <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Protocolo</th>
-                    <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Título</th>
-                    <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Submissão</th>
-                    <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Período</th>
-                    <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Estado</th>
-                    <th scope="col" className="px-6 py-4 text-right"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {meusProtocolos.map((protocolo) => (
-                    <tr key={protocolo.id} className="hover:bg-slate-50 transition-colors">
-                      <td className="px-6 py-4">
-                        <div className="font-bold text-slate-900">{protocolo.id.substring(0,8)}...</div>
-                        <div className="text-xs text-slate-500 line-clamp-1">{protocolo.justificativa}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">{protocolo.titulo || 'Sem Título'}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
-                        {new Date(protocolo.dataCriacao).toLocaleDateString('pt-BR')}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
-                        {new Date(protocolo.dataInicio).toLocaleDateString('pt-BR')} - {new Date(protocolo.dataTermino).toLocaleDateString('pt-BR')}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          {getEstadoIcon(protocolo.estado)}
-                          <span className="text-xs font-bold text-slate-700">
-                            {getEstadoText(protocolo.estado)}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                         <div className="flex justify-end gap-3">
-                            {/* Editar: apenas para protocolos que ainda não entraram em análise profunda ou precisam de ajuste */}
-                            {['aguardando_envio_parecer', 'aguardando_deliberacao'].includes(protocolo.estado) && (
-                                <button 
-                                    onClick={() => onEdit(protocolo)}
-                                    className="text-slate-600 hover:text-blue-600 transition-colors"
-                                    title="Editar Protocolo"
-                                >
-                                    <Edit2 className="w-5 h-5" />
-                                </button>
-                            )}
-
-                            {/* Relatórios/Pareceres: para protocolos deliberados (Aprovado ou Reprovado) */}
-                            {(protocolo.estado === 'uso_aprovado' || protocolo.estado === 'uso_reprovado') && (
-                                <>
-                                    {relatoriosMap[protocolo.id]?.length > 0 && (
-                                        <button 
-                                            onClick={() => {
-                                                const r = relatoriosMap[protocolo.id][0];
-                                                api.downloadRelatorio(r.id, r.nomeArquivoOriginal);
-                                            }}
-                                            className="text-blue-600 hover:text-blue-800 transition-colors"
-                                            title="Baixar Documento Oficial"
-                                        >
-                                            <Download className="w-5 h-5" />
-                                        </button>
-                                    )}
-                                    
-                                    {/* Emenda: APENAS para aprovados */}
-                                    {protocolo.estado === 'uso_aprovado' && (
-                                        <button 
-                                            onClick={() => handleEmenda(protocolo.id)}
-                                            className="text-orange-600 hover:text-orange-800 transition-colors"
-                                            title="Criar Emenda (Nova Versão)"
-                                        >
-                                            <Plus className="w-5 h-5 border border-orange-600 rounded-sm" />
-                                        </button>
-                                    )}
-                                </>
-                            )}
-                            
-                            <button 
-                                onClick={() => handleArquivar(protocolo.id)}
-                                className="text-slate-400 hover:text-red-500 transition-colors"
-                                title="Arquivar Protocolo"
-                            >
-                                <Archive className="w-5 h-5" />
-                            </button>
-                         </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
+        <ProtocolTable list={meusProtocolosAtivos} />
       </section>
 
-      {/* Histórico de Arquivados (Opcional) */}
       {meusArquivados.length > 0 && (
-          <section>
-              <h3 className="text-xl font-bold text-slate-400 mb-4 flex items-center gap-2">
-                <Archive className="w-5 h-5" />
-                Protocolos Arquivados
-              </h3>
-              <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm opacity-60">
-                 <table className="w-full text-sm">
-                    <tbody className="divide-y divide-slate-50">
-                        {meusArquivados.map(p => (
-                            <tr key={p.id}>
-                                <td className="px-6 py-3 font-medium">{p.id.substring(0,8)}...</td>
-                                <td className="px-6 py-3 text-slate-500 line-clamp-1">{p.titulo}</td>
-                                <td className="px-6 py-3 text-right text-xs font-bold uppercase text-slate-400 italic">Arquivado</td>
-                            </tr>
-                        ))}
-                    </tbody>
-                 </table>
-              </div>
-          </section>
+        <section className="pt-8 border-t border-slate-200">
+          <div className="mb-6">
+            <h2 className="text-xl font-bold text-slate-500 flex items-center gap-2">
+                <Archive className="w-5 h-5" /> Protocolos Arquivados
+            </h2>
+            <p className="text-slate-400 text-sm">Histórico de protocolos antigos ou removidos.</p>
+          </div>
+          <ProtocolTable list={meusArquivados} isArchived={true} />
+        </section>
       )}
     </div>
   );
