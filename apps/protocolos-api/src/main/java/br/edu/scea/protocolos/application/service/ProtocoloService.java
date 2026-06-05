@@ -7,7 +7,7 @@ import br.edu.scea.shared.dto.protocolo.DesignarPareceristaRequest;
 import br.edu.scea.shared.dto.protocolo.RegistrarParecerRequest;
 import br.edu.scea.shared.dto.protocolo.SubmissaoProtocoloRequest;
 import br.edu.scea.shared.enums.EstadoProtocolo;
-import br.edu.scea.shared.events.integration.ProtocolApprovedV1;
+import br.edu.scea.shared.events.integration.*;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -16,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -95,11 +94,12 @@ public class ProtocoloService {
             return nova;
         }).collect(Collectors.toList()));
 
-        return protocoloRepository.save(emenda).getId();
-    }
+        ProtocoloEntity salvo = protocoloRepository.save(emenda);
 
-    public List<ProtocoloEntity> listar() {
-        return protocoloRepository.findAll();
+        // Disparar evento de submissão para emendas também
+        publicarEventoSubmissao(salvo, salvo.getNomePesquisadorResponsavel());
+
+        return salvo.getId();
     }
 
     @Transactional
@@ -107,9 +107,8 @@ public class ProtocoloService {
         ProtocoloEntity p = protocoloRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Protocolo não encontrado"));
         
-        // Restrição: Não pode arquivar se já foi aprovado ou reprovado
         if (p.getEstado() == EstadoProtocolo.APROVADO || p.getEstado() == EstadoProtocolo.REPROVADO) {
-            throw new IllegalStateException("Protocolos já deliberados (Aprovados ou Reprovados) não podem ser arquivados.");
+            throw new IllegalStateException("Protocolos já deliberados não podem ser arquivados.");
         }
 
         p.setAtivo(false);
@@ -124,10 +123,13 @@ public class ProtocoloService {
                 .orElseThrow(() -> new RuntimeException("Protocolo não encontrado"));
         
         p.setAtivo(true);
-        // Volta para o estado inicial de análise (aguardando designação)
         p.setEstado(EstadoProtocolo.SUBMETIDO);
         p.setAtualizadoEm(LocalDateTime.now());
         protocoloRepository.save(p);
+    }
+
+    public List<ProtocoloEntity> listar() {
+        return protocoloRepository.findAll();
     }
 
     public java.util.Optional<ProtocoloEntity> buscarPorId(UUID id) {
@@ -158,7 +160,6 @@ public class ProtocoloService {
         calendarioService.validarDiaUtil(request.dataTerminoPlanejada(), "Término do experimento");
 
         UUID usuarioId = getUsuarioLogadoId();
-        // O principal geralmente contém o e-mail do usuário no Spring Security
         String emailUsuario = SecurityContextHolder.getContext().getAuthentication().getName();
         
         String codigo = "P-" + LocalDate.now().getYear() + "-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
@@ -179,7 +180,7 @@ public class ProtocoloService {
         entity.setCriadoEm(LocalDateTime.now());
         entity.setAtualizadoEm(LocalDateTime.now());
         entity.setIdUsuarioSubmetedor(usuarioId);
-        entity.setNomePesquisadorResponsavel(emailUsuario); // Armazenando o e-mail aqui para garantir
+        entity.setNomePesquisadorResponsavel(emailUsuario);
 
         entity.setAlocacoes(request.alocacoes().stream().map(dto -> {
             AlocacaoBiologicaEntity aloc = new AlocacaoBiologicaEntity();
@@ -195,7 +196,24 @@ public class ProtocoloService {
             return aloc;
         }).collect(Collectors.toList()));
 
-        return protocoloRepository.save(entity).getId();
+        ProtocoloEntity salvo = protocoloRepository.save(entity);
+        publicarEventoSubmissao(salvo, emailUsuario);
+        return salvo.getId();
+    }
+
+    private void publicarEventoSubmissao(ProtocoloEntity salvo, String email) {
+        try {
+            ProtocolSubmittedV1 event = new ProtocolSubmittedV1(
+                UUID.randomUUID(), Instant.now(), salvo.getId(),
+                salvo.getCodigoProtocolo(), salvo.getTitulo(), email,
+                salvo.getObjetivo(), salvo.getResumo(),
+                salvo.getDataInicioPlanejada(), salvo.getDataTerminoPlanejada(),
+                salvo.getJustificativa()
+            );
+            rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE_NAME, RabbitMQConfig.ROUTING_KEY_SUBMETIDO, event);
+        } catch (Exception e) {
+            log.error("Erro submissão: {}", e.getMessage());
+        }
     }
 
     @Transactional
@@ -216,21 +234,30 @@ public class ProtocoloService {
 
         protocolo.setEstado(EstadoProtocolo.EM_ANALISE_CEUA);
         protocolo.getDesignacoesParecer().add(designacao);
-        
         protocoloRepository.save(protocolo);
+
+        try {
+            ReviewerAssignedV1 event = new ReviewerAssignedV1(
+                UUID.randomUUID(), Instant.now(), protocolo.getId(),
+                protocolo.getCodigoProtocolo(), protocolo.getTitulo(),
+                "parecerista@scea.edu.br", request.prazoEm()
+            );
+            rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE_NAME, RabbitMQConfig.ROUTING_KEY_DESIGNADO, event);
+        } catch (Exception e) {
+            log.error("Erro designação: {}", e.getMessage());
+        }
     }
 
     @Transactional
     public void registrarParecer(UUID protocoloId, RegistrarParecerRequest request) {
         UUID usuarioLogadoId = getUsuarioLogadoId();
-        
+        String emailParecerista = SecurityContextHolder.getContext().getAuthentication().getName();
         ProtocoloEntity protocolo = protocoloRepository.findById(protocoloId)
                 .orElseThrow(() -> new RuntimeException("Protocolo não encontrado"));
 
         ProtocoloDesignacaoParecerEntity designacao = protocolo.getDesignacoesParecer().stream()
                 .filter(d -> d.getUsuarioPareceristaId().equals(usuarioLogadoId) && "pendente".equals(d.getEstadoDesignacao()))
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("Nenhuma designação pendente encontrada para este usuário"));
+                .findFirst().orElseThrow(() -> new RuntimeException("Designação pendente não encontrada"));
 
         ProtocoloParecerEntity parecer = new ProtocoloParecerEntity();
         parecer.setId(UUID.randomUUID());
@@ -245,6 +272,18 @@ public class ProtocoloService {
         
         parecerRepository.save(parecer);
         protocoloRepository.save(protocolo);
+
+        try {
+            ReviewSubmittedV1 event = new ReviewSubmittedV1(
+                UUID.randomUUID(), Instant.now(), protocolo.getId(),
+                protocolo.getCodigoProtocolo(), protocolo.getTitulo(),
+                emailParecerista, request.recomendacao().getCodigo(),
+                request.resumoTecnico(), request.consideracoesEticas()
+            );
+            rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE_NAME, RabbitMQConfig.ROUTING_KEY_PARECER, event);
+        } catch (Exception e) {
+            log.error("Erro parecer: {}", e.getMessage());
+        }
     }
 
     @Transactional
@@ -253,7 +292,6 @@ public class ProtocoloService {
                 .orElseThrow(() -> new RuntimeException("Protocolo não encontrado"));
 
         UUID usuarioLogadoId = getUsuarioLogadoId();
-
         ProtocoloDecisaoEntity decisao = new ProtocoloDecisaoEntity();
         decisao.setId(UUID.randomUUID());
         decisao.setProtocolo(protocolo);
@@ -263,65 +301,39 @@ public class ProtocoloService {
         decisao.setDecididoPorUsuarioId(usuarioLogadoId);
         decisao.setDecididoEm(LocalDateTime.now());
         decisao.setValidoAte(request.validoAte());
-
         decisao.setCriadoEm(LocalDateTime.now());
 
         protocolo.setEstado(request.novoEstado());
-        if (request.novoEstado() == EstadoProtocolo.APROVADO) {
-            if (request.quantidadeAnimaisAprovada() != null) {
-                protocolo.setQuantidadeAnimaisAprovada(request.quantidadeAnimaisAprovada());
-            }
+        if (request.novoEstado() == EstadoProtocolo.APROVADO && request.quantidadeAnimaisAprovada() != null) {
+            protocolo.setQuantidadeAnimaisAprovada(request.quantidadeAnimaisAprovada());
         }
 
-        // PUBLICAR EVENTO DE CONCLUSÃO (Aprovação ou Reprovação)
         publicarEventoConclusao(protocolo, request.fundamentacao(), request.novoEstado() == EstadoProtocolo.APROVADO);
-
         decisaoRepository.save(decisao);
         protocoloRepository.save(protocolo);
     }
 
     private void publicarEventoConclusao(ProtocoloEntity p, String fundamentacao, boolean aprovado) {
         try {
-            // Garantir que temos um e-mail válido
             String emailDestino = p.getNomePesquisadorResponsavel();
-            if (emailDestino == null || !emailDestino.contains("@")) {
-                emailDestino = "secretariascea@gmail.com";
-            }
+            if (emailDestino == null || !emailDestino.contains("@")) emailDestino = "secretariascea@gmail.com";
 
-            // Buscar análise do parecerista
             String analiseParecerista = p.getDesignacoesParecer().stream()
                     .filter(d -> "concluido".equals(d.getEstadoDesignacao()) && d.getParecer() != null)
                     .map(d -> d.getParecer().getResumoTecnico() + " | Ética: " + d.getParecer().getConsideracoesEticas())
-                    .findFirst()
-                    .orElse("Análise técnica realizada via comitê.");
+                    .findFirst().orElse("Análise técnica realizada.");
 
             ProtocolApprovedV1 event = new ProtocolApprovedV1(
-                UUID.randomUUID(),
-                Instant.now(),
-                aprovado ? "1.0" : "1.0-REPROVADO", // Sinalizar reprovação no schema ou metadado
-                UUID.randomUUID().toString(),
-                "protocolos-api",
-                p.getId(),
-                p.getTitulo(),
-                p.getObjetivo(),
-                p.getResumo(),
-                emailDestino,
-                p.getNomePesquisadorResponsavel(),
-                fundamentacao,
-                p.getDataInicioPlanejada(),
-                p.getDataTerminoPlanejada(),
-                analiseParecerista,
-                fundamentacao
+                UUID.randomUUID(), Instant.now(), aprovado ? "1.0" : "1.0-REPROVADO",
+                UUID.randomUUID().toString(), "protocolos-api", p.getId(),
+                p.getTitulo(), p.getObjetivo(), p.getResumo(), emailDestino,
+                p.getNomePesquisadorResponsavel(), fundamentacao,
+                p.getDataInicioPlanejada(), p.getDataTerminoPlanejada(),
+                analiseParecerista, fundamentacao
             );
-            
-            rabbitTemplate.convertAndSend(
-                RabbitMQConfig.EXCHANGE_NAME, 
-                RabbitMQConfig.ROUTING_KEY_APROVADO, 
-                event
-            );
-            log.info("DEBUG: Evento de conclusão ({}) enviado para RabbitMQ: {}", aprovado ? "APROVADO" : "REPROVADO", p.getId());
+            rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE_NAME, RabbitMQConfig.ROUTING_KEY_APROVADO, event);
         } catch (Exception e) {
-            log.error("ERRO ao enviar evento para RabbitMQ: " + e.getMessage());
+            log.error("Erro conclusão: {}", e.getMessage());
         }
     }
 }

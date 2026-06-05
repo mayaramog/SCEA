@@ -108,14 +108,24 @@ export function DocenteDashboard({ user, protocolos, onNovoProtocolo, onEdit, on
                     </button>
                   )}
                   
-                  {/* DOCUMENTOS: aprovados ou reprovados */}
-                  {(p.estado === 'uso_aprovado' || p.estado === 'uso_reprovado') && relatoriosMap[p.id]?.length > 0 && (
-                    <button 
-                      onClick={() => api.downloadRelatorio(relatoriosMap[p.id][0].id, relatoriosMap[p.id][0].nomeArquivoOriginal)}
-                      className="text-blue-600 hover:text-blue-800" title="Baixar Documento"
-                    >
-                      <Download className="w-5 h-5" />
-                    </button>
+                  {/* DOCUMENTOS: lista todos os disponíveis */}
+                  {(p.estado === 'uso_aprovado' || p.estado === 'uso_reprovado' || (relatoriosMap[p.id] && relatoriosMap[p.id].length > 0)) && (
+                    <div className="flex gap-1">
+                      {relatoriosMap[p.id]?.map((r: any) => (
+                        <button
+                          key={r.id}
+                          onClick={() => api.downloadRelatorio(r.id, r.nomeArquivoOriginal)}
+                          className={`p-1 rounded hover:bg-slate-100 transition-colors ${
+                            r.tipoDocumento === 'certificado_aprovacao' ? 'text-green-600' :
+                            r.tipoDocumento === 'parecer_reprovacao' ? 'text-red-600' :
+                            r.tipoDocumento === 'anexo_parecer' ? 'text-orange-500' : 'text-blue-500'
+                          }`}
+                          title={r.nomeArquivoOriginal}
+                        >
+                          <Download className="w-5 h-5" />
+                        </button>
+                      ))}
+                    </div>
                   )}
                   
                   {/* EMENDA: apenas aprovados e não arquivados */}

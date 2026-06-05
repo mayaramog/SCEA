@@ -1,6 +1,8 @@
 package br.edu.scea.comite.infrastructure.web;
 
 import br.edu.scea.comite.infrastructure.persistence.*;
+import br.edu.scea.shared.events.integration.MeetingFinishedV1;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
@@ -12,9 +14,11 @@ import java.util.UUID;
 public class ComiteController {
 
     private final ReuniaoComiteRepository repository;
+    private final RabbitTemplate rabbitTemplate;
 
-    public ComiteController(ReuniaoComiteRepository repository) {
+    public ComiteController(ReuniaoComiteRepository repository, RabbitTemplate rabbitTemplate) {
         this.repository = repository;
+        this.rabbitTemplate = rabbitTemplate;
     }
 
     @PostMapping
@@ -45,7 +49,39 @@ public class ComiteController {
         
         reuniao.setEstado(novoEstado.toLowerCase());
         repository.save(reuniao);
+
+        if ("concluida".equalsIgnoreCase(novoEstado)) {
+            dispararEventoAta(reuniao);
+        }
+
         return ResponseEntity.ok().build();
+    }
+
+    private void dispararEventoAta(ReuniaoComiteEntity r) {
+        try {
+            List<MeetingFinishedV1.MeetingDecisionDTO> decisoes = r.getPauta().stream()
+                .map(item -> new MeetingFinishedV1.MeetingDecisionDTO(
+                    item.getProtocoloId(),
+                    "Protocolo " + item.getProtocoloId().toString().substring(0,8),
+                    "Pesquisador Responsável",
+                    "Deliberado em Reunião",
+                    r.getObservacoes()
+                )).toList();
+
+            MeetingFinishedV1 event = new MeetingFinishedV1(
+                UUID.randomUUID(),
+                java.time.Instant.now(),
+                r.getId(),
+                r.getCodigoReuniao(),
+                r.getAgendadaPara().toString(),
+                r.getDescricaoLocal(),
+                decisoes
+            );
+
+            rabbitTemplate.convertAndSend("protocolos.v1", "protocolo.reuniao_finalizada", event);
+        } catch (Exception e) {
+            System.err.println("ERRO ao disparar evento de ata: " + e.getMessage());
+        }
     }
 
     @PostMapping("/{reuniaoId}/protocolos/{protocoloId}")
@@ -53,7 +89,6 @@ public class ComiteController {
         ReuniaoComiteEntity reuniao = repository.findById(reuniaoId)
                 .orElseThrow(() -> new RuntimeException("Reunião não encontrada"));
         
-        // Evitar duplicatas na pauta
         boolean jaExiste = reuniao.getPauta().stream().anyMatch(p -> p.getProtocoloId().equals(protocoloId));
         if (jaExiste) return ResponseEntity.badRequest().build();
 

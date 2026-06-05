@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { Protocolo, Reuniao } from '../App';
 import { FileText, CheckCircle, Clock, Calendar, Plus, ChevronRight, Play, CheckSquare } from 'lucide-react';
 import api from '../utils/api';
-import { ParecerModal } from './ParecerModal';
 
 interface PresidenteDashboardProps {
   protocolos: Protocolo[];
@@ -16,6 +15,7 @@ export function PresidenteDashboard({ protocolos, onDeliberar }: PresidenteDashb
   const [selectedProtocolo, setSelectedProtocolo] = useState<Protocolo | null>(null);
   const [justificativaDeliberacao, setJustificativaDeliberacao] = useState('');
   const [deliberacaoError, setDeliberacaoError] = useState('');
+  const [documentosProtocolo, setDocumentosProtocolo] = useState<any[]>([]);
   
   // New Meeting Fields
   const [newCodigo, setNewCodigo] = useState('');
@@ -29,6 +29,14 @@ export function PresidenteDashboard({ protocolos, onDeliberar }: PresidenteDashb
   useEffect(() => {
     loadReunioes();
   }, []);
+
+  useEffect(() => {
+    if (selectedProtocolo) {
+        api.fetchRelatoriosPorProtocolo(selectedProtocolo.id).then(setDocumentosProtocolo);
+    } else {
+        setDocumentosProtocolo([]);
+    }
+  }, [selectedProtocolo]);
 
   const handleCreateReuniao = async () => {
     if (!newCodigo || !newData) return;
@@ -70,9 +78,6 @@ export function PresidenteDashboard({ protocolos, onDeliberar }: PresidenteDashb
     }
   };
 
-  // Filtrar protocolos que podem ir para a pauta
-  // Devem estar em 'aguardando_deliberacao' (significa que já passaram pelo parecerista)
-  // E não devem estar na pauta da reunião selecionada
   const protocolosDisponiveis = protocolos.filter(p => 
     p.estado === 'aguardando_deliberacao' &&
     !selectedReuniao?.pauta.some(item => item.protocoloId === p.id)
@@ -269,7 +274,20 @@ export function PresidenteDashboard({ protocolos, onDeliberar }: PresidenteDashb
               {/* Informações do Protocolo */}
               <div className="space-y-6">
                 <section>
-                    <h4 className="text-sm font-bold text-blue-600 uppercase tracking-wider mb-2">Dados do Projeto</h4>
+                    <div className="flex justify-between items-center mb-2">
+                        <h4 className="text-sm font-bold text-blue-600 uppercase tracking-wider">Dados do Projeto</h4>
+                        <div className="flex gap-2">
+                            {documentosProtocolo.filter(d => d.tipoDocumento === 'formulario_submissao').map(d => (
+                                <button 
+                                    key={d.id}
+                                    onClick={() => api.downloadRelatorio(d.id, d.nomeArquivoOriginal)}
+                                    className="flex items-center gap-1 text-[10px] bg-blue-50 text-blue-700 px-2 py-1 rounded border border-blue-100 hover:bg-blue-100 transition-all"
+                                >
+                                    <FileText className="w-3 h-3" /> Ver Submissão
+                                </button>
+                            ))}
+                        </div>
+                    </div>
                     <div className="bg-slate-50 rounded-xl p-4 space-y-3">
                         <p className="text-sm"><span className="font-bold">Pesquisador:</span> {selectedProtocolo.docenteNome}</p>
                         <p className="text-sm"><span className="font-bold">Período:</span> {new Date(selectedProtocolo.dataInicio).toLocaleDateString()} a {new Date(selectedProtocolo.dataTermino).toLocaleDateString()}</p>
@@ -295,7 +313,20 @@ export function PresidenteDashboard({ protocolos, onDeliberar }: PresidenteDashb
               {/* Pareceres dos Relatores */}
               <div className="space-y-6">
                 <section>
-                    <h4 className="text-sm font-bold text-orange-600 uppercase tracking-wider mb-2">Pareceres Técnicos</h4>
+                    <div className="flex justify-between items-center mb-2">
+                        <h4 className="text-sm font-bold text-orange-600 uppercase tracking-wider">Pareceres Técnicos</h4>
+                        <div className="flex gap-2">
+                            {documentosProtocolo.filter(d => d.tipoDocumento === 'anexo_parecer').map((d, i) => (
+                                <button 
+                                    key={d.id}
+                                    onClick={() => api.downloadRelatorio(d.id, d.nomeArquivoOriginal)}
+                                    className="flex items-center gap-1 text-[10px] bg-orange-50 text-orange-700 px-2 py-1 rounded border border-orange-100 hover:bg-orange-100 transition-all"
+                                >
+                                    <CheckSquare className="w-3 h-3" /> PDF Parecer {i+1}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
                     <div className="space-y-4">
                         {selectedProtocolo.designacoesParecer.filter(d => d.parecer).length === 0 && (
                             <p className="text-sm text-slate-400 italic">Nenhum parecer técnico registrado ainda.</p>
