@@ -1,7 +1,7 @@
 package br.edu.scea.protocolos.infrastructure.persistence;
 
 import jakarta.persistence.*;
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -28,7 +28,7 @@ public class ProtocoloHistoricoStatusEntity {
     private UUID alteradoPorUsuarioId;
 
     @Column(name = "alterado_em")
-    private OffsetDateTime alteradoEm;
+    private LocalDateTime alteradoEm;
 
     public ProtocoloHistoricoStatusEntity() {}
 
@@ -44,6 +44,6 @@ public class ProtocoloHistoricoStatusEntity {
     public void setMotivoMudanca(String motivoMudanca) { this.motivoMudanca = motivoMudanca; }
     public UUID getAlteradoPorUsuarioId() { return alteradoPorUsuarioId; }
     public void setAlteradoPorUsuarioId(UUID alteradoPorUsuarioId) { this.alteradoPorUsuarioId = alteradoPorUsuarioId; }
-    public OffsetDateTime getAlteradoEm() { return alteradoEm; }
-    public void setAlteradoEm(OffsetDateTime alteradoEm) { this.alteradoEm = alteradoEm; }
+    public LocalDateTime getAlteradoEm() { return alteradoEm; }
+    public void setAlteradoEm(LocalDateTime alteradoEm) { this.alteradoEm = alteradoEm; }
 }

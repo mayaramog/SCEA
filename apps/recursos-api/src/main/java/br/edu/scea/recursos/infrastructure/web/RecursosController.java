@@ -7,7 +7,7 @@ import br.edu.scea.recursos.infrastructure.persistence.EspecieRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -32,7 +32,7 @@ public class RecursosController {
     @PreAuthorize("hasRole('ADMINISTRADOR')")
     public ResponseEntity<EspecieEntity> criarEspecie(@RequestBody EspecieEntity especie) {
         if (especie.getId() == null) especie.setId(UUID.randomUUID());
-        if (especie.getCriadoEm() == null) especie.setCriadoEm(OffsetDateTime.now());
+        if (especie.getCriadoEm() == null) especie.setCriadoEm(LocalDateTime.now());
         especie.setAtivo(true);
         return ResponseEntity.ok(especieRepository.save(especie));
     }
@@ -46,7 +46,7 @@ public class RecursosController {
     @PreAuthorize("hasRole('ADMINISTRADOR')")
     public ResponseEntity<BioterioEntity> criarBioterio(@RequestBody BioterioEntity bioterio) {
         if (bioterio.getId() == null) bioterio.setId(UUID.randomUUID());
-        if (bioterio.getCriadoEm() == null) bioterio.setCriadoEm(OffsetDateTime.now());
+        if (bioterio.getCriadoEm() == null) bioterio.setCriadoEm(LocalDateTime.now());
         bioterio.setAtivo(true);
         return ResponseEntity.ok(bioterioRepository.save(bioterio));
     }

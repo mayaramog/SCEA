@@ -1,5 +1,6 @@
 package br.edu.scea.notification.infrastructure.messaging;
 
+import br.edu.scea.notification.application.service.EmailService;
 import br.edu.scea.shared.events.integration.NotificationEvent;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
@@ -7,17 +8,21 @@ import org.springframework.stereotype.Component;
 @Component
 public class NotificationListener {
 
+    private final EmailService emailService;
+
+    public NotificationListener(EmailService emailService) {
+        this.emailService = emailService;
+    }
+
     @RabbitListener(queues = RabbitMQConfig.QUEUE_NAME)
     public void onNotificationRequest(NotificationEvent event) {
-        System.out.println("=====================================================");
-        System.out.println("SIMULAÇÃO DE ENVIO DE E-MAIL");
-        System.out.println("Para: " + event.recipient());
-        System.out.println("Assunto: " + event.subject());
-        System.out.println("Mensagem: " + event.message());
-        if (event.attachmentPath() != null) {
-            System.out.println("Anexo Detectado: " + event.attachmentPath());
-        }
-        System.out.println("E-mail enviado com sucesso via RabbitMQ!");
-        System.out.println("=====================================================");
+        System.out.println("DEBUG: Processando pedido de notificação para: " + event.recipient());
+        
+        emailService.sendEmail(
+            event.recipient(),
+            event.subject(),
+            event.message(),
+            event.attachmentPath()
+        );
     }
 }

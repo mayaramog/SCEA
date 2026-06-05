@@ -1,7 +1,7 @@
 package br.edu.scea.protocolos.infrastructure.persistence;
 
 import jakarta.persistence.*;
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -34,7 +34,7 @@ public class AlocacaoBiologicaEntity {
     private String sexo;
 
     @Column(name = "criado_em")
-    private OffsetDateTime criadoEm;
+    private LocalDateTime criadoEm;
 
     public AlocacaoBiologicaEntity() {}
 
@@ -54,6 +54,6 @@ public class AlocacaoBiologicaEntity {
     public void setJustificativa(String justificativa) { this.justificativa = justificativa; }
     public String getSexo() { return sexo; }
     public void setSexo(String sexo) { this.sexo = sexo; }
-    public OffsetDateTime getCriadoEm() { return criadoEm; }
-    public void setCriadoEm(OffsetDateTime criadoEm) { this.criadoEm = criadoEm; }
+    public LocalDateTime getCriadoEm() { return criadoEm; }
+    public void setCriadoEm(LocalDateTime criadoEm) { this.criadoEm = criadoEm; }
 }

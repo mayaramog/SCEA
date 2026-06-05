@@ -1,7 +1,7 @@
 package br.edu.scea.comite.infrastructure.persistence;
 
 import jakarta.persistence.*;
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -18,7 +18,7 @@ public class ReuniaoComiteEntity {
     private String codigoReuniao;
 
     @Column(name = "agendada_para", nullable = false)
-    private OffsetDateTime agendadaPara;
+    private LocalDateTime agendadaPara;
 
     @Column(name = "descricao_local")
     private String descricaoLocal;
@@ -30,7 +30,7 @@ public class ReuniaoComiteEntity {
     private String observacoes;
 
     @Column(name = "criado_em", nullable = false)
-    private OffsetDateTime criadoEm;
+    private LocalDateTime criadoEm;
 
     @OneToMany(mappedBy = "reuniao", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ReuniaoComiteProtocoloEntity> pauta = new ArrayList<>();
@@ -41,16 +41,17 @@ public class ReuniaoComiteEntity {
     public void setId(UUID id) { this.id = id; }
     public String getCodigoReuniao() { return codigoReuniao; }
     public void setCodigoReuniao(String codigoReuniao) { this.codigoReuniao = codigoReuniao; }
-    public OffsetDateTime getAgendadaPara() { return agendadaPara; }
-    public void setAgendadaPara(OffsetDateTime agendadaPara) { this.agendadaPara = agendadaPara; }
+    public LocalDateTime getAgendadaPara() { return agendadaPara; }
+    public void setAgendadaPara(LocalDateTime agendadaPara) { this.agendadaPara = agendadaPara; }
     public String getDescricaoLocal() { return descricaoLocal; }
     public void setDescricaoLocal(String descricaoLocal) { this.descricaoLocal = descricaoLocal; }
     public String getEstado() { return estado; }
     public void setEstado(String estado) { this.estado = estado; }
     public String getObservacoes() { return observacoes; }
     public void setObservacoes(String observacoes) { this.observacoes = observacoes; }
-    public OffsetDateTime getCriadoEm() { return criadoEm; }
-    public void setCriadoEm(OffsetDateTime criadoEm) { this.criadoEm = criadoEm; }
+    public LocalDateTime getCriadoEm() { return criadoEm; }
+    public void setCriadoEm(LocalDateTime criadoEm) { this.criadoEm = criadoEm; }
+
     public List<ReuniaoComiteProtocoloEntity> getPauta() { return pauta; }
     public void setPauta(List<ReuniaoComiteProtocoloEntity> pauta) { this.pauta = pauta; }
 }

@@ -1,7 +1,7 @@
 package br.edu.scea.protocolos.infrastructure.persistence;
 
 import jakarta.persistence.*;
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -25,7 +25,7 @@ public class ProtocoloMembroEquipeEntity {
     private String papelInstitucional;
 
     @Column(name = "criado_em")
-    private OffsetDateTime criadoEm;
+    private LocalDateTime criadoEm;
 
     public ProtocoloMembroEquipeEntity() {}
 
@@ -39,6 +39,6 @@ public class ProtocoloMembroEquipeEntity {
     public void setNomeCompleto(String nomeCompleto) { this.nomeCompleto = nomeCompleto; }
     public String getPapelInstitucional() { return papelInstitucional; }
     public void setPapelInstitucional(String papelInstitucional) { this.papelInstitucional = papelInstitucional; }
-    public OffsetDateTime getCriadoEm() { return criadoEm; }
-    public void setCriadoEm(OffsetDateTime criadoEm) { this.criadoEm = criadoEm; }
+    public LocalDateTime getCriadoEm() { return criadoEm; }
+    public void setCriadoEm(LocalDateTime criadoEm) { this.criadoEm = criadoEm; }
 }

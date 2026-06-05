@@ -3,7 +3,7 @@ package br.edu.scea.protocolos.infrastructure.persistence;
 import br.edu.scea.shared.enums.EstadoProtocolo;
 import jakarta.persistence.*;
 import java.time.LocalDate;
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -60,10 +60,10 @@ public class ProtocoloEntity {
     private String justificativa;
 
     @Column(name = "criado_em")
-    private OffsetDateTime criadoEm;
+    private LocalDateTime criadoEm;
 
     @Column(name = "atualizado_em")
-    private OffsetDateTime atualizadoEm;
+    private LocalDateTime atualizadoEm;
 
     @OneToMany(mappedBy = "protocolo", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AlocacaoBiologicaEntity> alocacoes = new ArrayList<>();
@@ -125,10 +125,10 @@ public class ProtocoloEntity {
     public void setObservacoes(String observacoes) { this.observacoes = observacoes; }
     public String getJustificativa() { return justificativa; }
     public void setJustificativa(String justificativa) { this.justificativa = justificativa; }
-    public OffsetDateTime getCriadoEm() { return criadoEm; }
-    public void setCriadoEm(OffsetDateTime criadoEm) { this.criadoEm = criadoEm; }
-    public OffsetDateTime getAtualizadoEm() { return atualizadoEm; }
-    public void setAtualizadoEm(OffsetDateTime atualizadoEm) { this.atualizadoEm = atualizadoEm; }
+    public LocalDateTime getCriadoEm() { return criadoEm; }
+    public void setCriadoEm(LocalDateTime criadoEm) { this.criadoEm = criadoEm; }
+    public LocalDateTime getAtualizadoEm() { return atualizadoEm; }
+    public void setAtualizadoEm(LocalDateTime atualizadoEm) { this.atualizadoEm = atualizadoEm; }
     
     public List<AlocacaoBiologicaEntity> getAlocacoes() { return alocacoes; }
     public void setAlocacoes(List<AlocacaoBiologicaEntity> alocacoes) { this.alocacoes = alocacoes; }

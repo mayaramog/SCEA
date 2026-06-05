@@ -17,7 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -73,8 +73,8 @@ public class AuthController {
         novoUsuario.setNomeCompleto(request.nomeCompleto());
         novoUsuario.setPasswordHash(passwordEncoder.encode(request.senha()));
         novoUsuario.setEstaAtivo(true);
-        novoUsuario.setCriadoEm(OffsetDateTime.now());
-        novoUsuario.setAtualizadoEm(OffsetDateTime.now());
+        novoUsuario.setCriadoEm(LocalDateTime.now());
+        novoUsuario.setAtualizadoEm(LocalDateTime.now());
 
         Set<Papel> papeis = new HashSet<>();
         if (request.codigosPapeis() != null) {
@@ -113,7 +113,7 @@ public class AuthController {
         }
         
         usuario.setPapeis(novosPapeis);
-        usuario.setAtualizadoEm(OffsetDateTime.now());
+        usuario.setAtualizadoEm(LocalDateTime.now());
 
         Usuario salvo = usuarioRepository.save(usuario);
 

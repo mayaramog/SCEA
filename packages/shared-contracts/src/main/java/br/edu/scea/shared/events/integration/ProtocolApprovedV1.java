@@ -11,6 +11,7 @@ public record ProtocolApprovedV1(
     String correlationId,
     String producer,
     UUID protocolId,
+    String emailPesquisador,
     String justificativa,
     LocalDate dataInicio,
     LocalDate dataTermino

@@ -1,7 +1,7 @@
 package br.edu.scea.relatorios.infrastructure.persistence;
 
 import jakarta.persistence.*;
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -29,7 +29,7 @@ public class RelatorioEntity {
     private UUID enviadoPorUsuarioId;
 
     @Column(name = "enviado_em")
-    private OffsetDateTime enviadoEm;
+    private LocalDateTime enviadoEm;
 
     public RelatorioEntity() {}
 
@@ -48,6 +48,6 @@ public class RelatorioEntity {
     public void setMimeType(String mimeType) { this.mimeType = mimeType; }
     public UUID getEnviadoPorUsuarioId() { return enviadoPorUsuarioId; }
     public void setEnviadoPorUsuarioId(UUID enviadoPorUsuarioId) { this.enviadoPorUsuarioId = enviadoPorUsuarioId; }
-    public OffsetDateTime getEnviadoEm() { return enviadoEm; }
-    public void setEnviadoEm(OffsetDateTime enviadoEm) { this.enviadoEm = enviadoEm; }
+    public LocalDateTime getEnviadoEm() { return enviadoEm; }
+    public void setEnviadoEm(LocalDateTime enviadoEm) { this.enviadoEm = enviadoEm; }
 }

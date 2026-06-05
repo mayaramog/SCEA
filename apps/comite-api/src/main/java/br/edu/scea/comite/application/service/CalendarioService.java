@@ -14,7 +14,7 @@ import java.net.http.HttpResponse;
 import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.LocalDate;
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -34,8 +34,8 @@ public class CalendarioService {
         this.objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
-    public void validarDiaUtil(OffsetDateTime dataHora, String label) {
-        LocalDate data = dataHora.toLocalDate();
+    public void validarDiaUtil(java.time.LocalDateTime dataHora, String label) {
+        java.time.LocalDate data = dataHora.toLocalDate();
         if (isFinalDeSemana(data)) {
             throw new IllegalArgumentException(label + " não pode ser em um final de semana: " + data);
         }

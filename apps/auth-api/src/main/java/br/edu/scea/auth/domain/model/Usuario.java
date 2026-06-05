@@ -1,7 +1,7 @@
 package br.edu.scea.auth.domain.model;
 
 import jakarta.persistence.*;
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -25,10 +25,10 @@ public class Usuario {
     private boolean estaAtivo;
 
     @Column(name = "criado_em")
-    private OffsetDateTime criadoEm;
+    private LocalDateTime criadoEm;
 
     @Column(name = "atualizado_em")
-    private OffsetDateTime atualizadoEm;
+    private LocalDateTime atualizadoEm;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
@@ -51,10 +51,10 @@ public class Usuario {
     public void setNomeCompleto(String nomeCompleto) { this.nomeCompleto = nomeCompleto; }
     public boolean isEstaAtivo() { return estaAtivo; }
     public void setEstaAtivo(boolean estaAtivo) { this.estaAtivo = estaAtivo; }
-    public OffsetDateTime getCriadoEm() { return criadoEm; }
-    public void setCriadoEm(OffsetDateTime criadoEm) { this.criadoEm = criadoEm; }
-    public OffsetDateTime getAtualizadoEm() { return atualizadoEm; }
-    public void setAtualizadoEm(OffsetDateTime atualizadoEm) { this.atualizadoEm = atualizadoEm; }
+    public LocalDateTime getCriadoEm() { return criadoEm; }
+    public void setCriadoEm(LocalDateTime criadoEm) { this.criadoEm = criadoEm; }
+    public LocalDateTime getAtualizadoEm() { return atualizadoEm; }
+    public void setAtualizadoEm(LocalDateTime atualizadoEm) { this.atualizadoEm = atualizadoEm; }
     public Set<Papel> getPapeis() { return papeis; }
     public void setPapeis(Set<Papel> papeis) { this.papeis = papeis; }
 }

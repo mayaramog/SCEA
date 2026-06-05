@@ -3,7 +3,7 @@ package br.edu.scea.comite.infrastructure.web;
 import br.edu.scea.comite.infrastructure.persistence.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -20,7 +20,7 @@ public class ComiteController {
     @PostMapping
     public ResponseEntity<ReuniaoComiteEntity> criar(@RequestBody ReuniaoComiteEntity reuniao) {
         if (reuniao.getId() == null) reuniao.setId(UUID.randomUUID());
-        if (reuniao.getCriadoEm() == null) reuniao.setCriadoEm(OffsetDateTime.now());
+        if (reuniao.getCriadoEm() == null) reuniao.setCriadoEm(java.time.LocalDateTime.now());
         if (reuniao.getEstado() == null) reuniao.setEstado("agendada");
         
         return ResponseEntity.ok(repository.save(reuniao));

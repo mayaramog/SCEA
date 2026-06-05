@@ -399,9 +399,11 @@ COPY scea.papel (id, codigo, nome, descricao, criado_em) FROM stdin;
 --
 
 COPY scea.protocolo (id, codigo_protocolo, titulo, objetivo, resumo, id_usuario_submetedor, nome_pesquisador_responsavel, nome_departamento, versao_atual, estado, data_submissao, data_inicio_planejada, data_termino_planejada, quantidade_animais_aprovada, observacoes, criado_em, atualizado_em, arquivado_em, justificativa) FROM stdin;
-51bf5a61-4d96-4529-be6c-eaa2aa07b217	P-2026-B541DF85	Efeito neuroprotetor da curcumina em modelos de isquemia cerebral	Avaliar a redução de danos neuronais pós-isquemia	Estudo experimental utilizando indução por oclusão da artéria cerebral média.	f2c8d169-5826-4c5a-a9d2-5f2f2ae92d0c	Dr. Ricardo Pesquisador	Departamento de Farmacologia	1	submetido	2026-05-09	2026-06-01	2026-12-30	0	\N	2026-05-09 22:18:46.488012-03	2026-05-09 22:18:46.488012-03	\N	Necessidade de investigar alternativas naturais aos neuroprotetores sintéticos.
-a336dc4d-7aa8-45f8-ac57-1d823f5160e3	P-2026-6A3A8181	Avaliação da toxicidade aguda de nanopartículas de prata em peixes-zebra	Determinar a DL50 e alterações comportamentais	Análise de sobrevivência e natação em Danio rerio expostos a diferentes concentrações.	f2c8d169-5826-4c5a-a9d2-5f2f2ae92d0c	Dr. Ricardo Pesquisador	Centro de Nanotecnologia	1	pendencia_solicitada	2026-05-09	2026-06-01	2026-08-30	0	\N	2026-05-09 22:22:18.894493-03	2026-05-09 22:28:56.788932-03	\N	Nanopartículas são amplamente utilizadas e seu impacto ambiental em ambientes aquáticos é pouco conhecido.
-ae6b5f23-fd47-4a67-9ac2-c956b757c193	P-2026-7DACFE4D	Modelagem de diabetes tipo 1 em camundongos Balb/c	Validar novo protocolo de indução por estreptozotocina	Otimização de doses para reduzir mortalidade mantendo hiperglicemia estável.	f2c8d169-5826-4c5a-a9d2-5f2f2ae92d0c	Dr. Ricardo Pesquisador	Lab de Fisiologia	1	aprovado	2026-05-09	2026-06-01	2026-10-30	15	\N	2026-05-09 23:01:09.023995-03	2026-05-09 23:03:53.704831-03	\N	Modelos atuais apresentam alta variabilidade; o refinamento reduzirá o número de animais utilizados no futuro.
+11111111-1111-1111-1111-111111111111	P-2026-N01	Estudo da plasticidade sináptica em hipocampo de ratos	Avaliar a recuperação neuronal pós-isquemia induzida	O projeto foca na análise morfológica de dendritos em modelos de laboratório.	550e8400-e29b-41d4-a716-446655440001	Dr. Ricardo Pesquisador	Departamento de Neurociências	1	submetido	2026-05-10	2026-06-01	2026-12-30	0	\N	2026-05-10 10:00:00-03	2026-05-10 10:00:00-03	\N	Necessário para entender mecanismos de memória e aprendizado.
+22222222-2222-2222-2222-222222222222	P-2026-N02	Resposta imune em camundongos pós-vacinação intranasal	Mapear a produção de anticorpos IgA em mucosas	Utilização de diferentes adjuvantes para potencializar a resposta vacinal.	550e8400-e29b-41d4-a716-446655440001	Dr. Ricardo Pesquisador	Lab de Imunologia	1	submetido	2026-05-11	2026-07-01	2026-09-30	0	\N	2026-05-11 09:30:00-03	2026-05-11 09:30:00-03	\N	Desenvolvimento de vacinas menos invasivas e mais eficazes.
+33333333-3333-3333-3333-333333333333	P-2026-R01	Efeito de extratos vegetais na cicatrização cutânea	Testar eficácia de pomada baseada em calêndula	Análise histopatológica da velocidade de fechamento de feridas em ratos.	550e8400-e29b-41d4-a716-446655440001	Dr. Ricardo Pesquisador	Centro de Fitoterápicos	1	em_analise_ceua	2026-05-08	2026-06-15	2026-08-15	0	\N	2026-05-08 14:00:00-03	2026-05-08 14:00:00-03	\N	Busca por tratamentos de baixo custo para feridas crônicas.
+44444444-4444-4444-4444-444444444444	P-2026-R02	Novos biomarcadores para detecção precoce de Alzheimer	Analisar proteínas específicas no tecido cerebral	Identificação de alterações moleculares antes do surgimento de sintomas clínicos.	550e8400-e29b-41d4-a716-446655440001	Dr. Ricardo Pesquisador	Genética Molecular	1	em_analise_ceua	2026-05-07	2026-08-01	2027-02-28	0	\N	2026-05-07 11:20:00-03	2026-05-07 11:20:00-03	\N	Detecção precoce é crucial para o manejo da doença neurodegenerativa.
+55555555-5555-5555-5555-555555555555	P-2026-D01	Parâmetros fisiológicos em peixes-zebra sob estresse térmico	Monitorar batimentos cardíacos em tempo real	Estudo da adaptação de animais aquáticos ao aquecimento global.	550e8400-e29b-41d4-a716-446655440001	Dr. Ricardo Pesquisador	Ecologia Aquática	1	pendencia_solicitada	2026-05-05	2026-06-01	2026-06-30	0	\N	2026-05-05 16:45:00-03	2026-05-09 10:00:00-03	\N	Avaliação do impacto ambiental nas espécies nativas.
 \.
 
 
@@ -410,7 +412,6 @@ ae6b5f23-fd47-4a67-9ac2-c956b757c193	P-2026-7DACFE4D	Modelagem de diabetes tipo 
 --
 
 COPY scea.protocolo_decisao (id, protocolo_id, reuniao_id, tipo_decisao, decidido_por_usuario_id, decidido_em, valido_ate, fundamentacao, criado_em) FROM stdin;
-b1245d27-0870-45d6-be01-d60082da6815	ae6b5f23-fd47-4a67-9ac2-c956b757c193	550e8400-e29b-41d4-a716-446655440088	aprovado	550e8400-e29b-41d4-a716-446655440005	2026-05-09 23:03:53.705541-03	2027-12-31 20:59:59-03	Projeto bem estruturado, segue os princípios dos 3Rs e apresenta relevância acadêmica.	2026-05-09 23:03:53.705541-03
 \.
 
 
@@ -419,7 +420,9 @@ b1245d27-0870-45d6-be01-d60082da6815	ae6b5f23-fd47-4a67-9ac2-c956b757c193	550e84
 --
 
 COPY scea.protocolo_designacao_parecer (id, protocolo_id, usuario_parecerista_id, atribuido_por_usuario_id, estado_designacao, atribuido_em, prazo_em) FROM stdin;
-d0897862-c6e1-4add-8035-07114fa7384d	ae6b5f23-fd47-4a67-9ac2-c956b757c193	550e8400-e29b-41d4-a716-446655440002	550e8400-e29b-41d4-a716-446655440000	concluido	2026-05-09 22:24:23.836468-03	2026-06-15 20:59:59-03
+d3d3d3d3-d3d3-d3d3-d3d3-d3d3d3d3d3d3	33333333-3333-3333-3333-333333333333	550e8400-e29b-41d4-a716-446655440002	550e8400-e29b-41d4-a716-446655440000	pendente	2026-05-09 09:00:00-03	2026-06-09 23:59:59-03
+d4d4d4d4-d4d4-d4d4-d4d4-d4d4d4d4d4d4	44444444-4444-4444-4444-444444444444	550e8400-e29b-41d4-a716-446655440002	550e8400-e29b-41d4-a716-446655440000	pendente	2026-05-09 09:05:00-03	2026-06-09 23:59:59-03
+d5d5d5d5-d5d5-d5d5-d5d5-d5d5d5d5d5d5	55555555-5555-5555-5555-555555555555	550e8400-e29b-41d4-a716-446655440002	550e8400-e29b-41d4-a716-446655440000	concluido	2026-05-06 10:00:00-03	2026-06-06 23:59:59-03
 \.
 
 
@@ -428,9 +431,11 @@ d0897862-c6e1-4add-8035-07114fa7384d	ae6b5f23-fd47-4a67-9ac2-c956b757c193	550e84
 --
 
 COPY scea.protocolo_estoque_biologico (id, protocolo_id, especie_id, bioterio_id, nome_linhagem, sexo, quantidade_planejada, justificativa, criado_em) FROM stdin;
-752a35d2-aff5-4038-bd83-4d5c168236b1	51bf5a61-4d96-4529-be6c-eaa2aa07b217	00000000-0000-0000-0000-000000000021	00000000-0000-0000-0000-000000000031	Wistar	macho	12	Grupo controle e experimental	2026-05-09 22:18:46.488012-03
-fb489d03-283a-48c3-b3bf-8cd288533a71	a336dc4d-7aa8-45f8-ac57-1d823f5160e3	00000000-0000-0000-0000-000000000023	00000000-0000-0000-0000-000000000032	Wild-type	misto	50	Ensaio de toxicidade	2026-05-09 22:22:18.894493-03
-5709307b-eae0-4d99-b4e3-a2d4023a01ea	ae6b5f23-fd47-4a67-9ac2-c956b757c193	00000000-0000-0000-0000-000000000022	00000000-0000-0000-0000-000000000031	Balb/c	femea	15	Indução de diabetes	2026-05-09 23:01:09.023995-03
+b1111111-1111-1111-1111-111111111111	11111111-1111-1111-1111-111111111111	00000000-0000-0000-0000-000000000021	00000000-0000-0000-0000-000000000031	Wistar	macho	12	Grupo controle e experimental	2026-05-10 10:00:00-03
+b2222222-2222-2222-2222-222222222222	22222222-2222-2222-2222-222222222222	00000000-0000-0000-0000-000000000022	00000000-0000-0000-0000-000000000031	Balb/c	misto	20	Ensaios imunológicos	2026-05-11 09:30:00-03
+b3333333-3333-3333-3333-333333333333	33333333-3333-3333-3333-333333333333	00000000-0000-0000-0000-000000000021	00000000-0000-0000-0000-000000000032	Wistar	femea	10	Teste de cicatrização	2026-05-08 14:00:00-03
+b4444444-4444-4444-4444-444444444444	44444444-4444-4444-4444-444444444444	00000000-0000-0000-0000-000000000022	00000000-0000-0000-0000-000000000032	Balb/c	misto	15	Análise molecular	2026-05-07 11:20:00-03
+b5555555-5555-5555-5555-555555555555	55555555-5555-5555-5555-555555555555	00000000-0000-0000-0000-000000000023	00000000-0000-0000-0000-000000000032	Wild-type	misto	50	Monitoramento cardíaco	2026-05-05 16:45:00-03
 \.
 
 
@@ -455,7 +460,7 @@ COPY scea.protocolo_membro_equipe (id, protocolo_id, nome_completo, email, papel
 --
 
 COPY scea.protocolo_parecer (id, designacao_id, recomendacao, resumo_tecnico, consideracoes_eticas, submetido_em) FROM stdin;
-d08e663c-af4e-4b2e-9e43-153b045a30d3	d0897862-c6e1-4add-8035-07114fa7384d	uso_recomendado	Metodologia adequada para os objetivos propostos. Desenho experimental robusto.	O controle de dor e o método de eutanásia estão em conformidade com as normas nacionais.	2026-05-09 22:28:56.791362-03
+f5f5f5f5-f5f5-f5f5-f5f5-f5f5f5f5f5f5	d5d5d5d5-d5d5-d5d5-d5d5-d5d5d5d5d5d5	uso_recomendado	O uso de peixes-zebra como modelo para estresse térmico é adequado. A metodologia de monitoramento não invasivo reduz o sofrimento.	A temperatura da água será monitorada rigorosamente para não ultrapassar os limites letais.	2026-05-09 10:00:00-03
 \.
 
 
@@ -481,7 +486,7 @@ COPY scea.reuniao_comite (id, codigo_reuniao, agendada_para, descricao_local, es
 --
 
 COPY scea.reuniao_comite_protocolo (reuniao_id, protocolo_id, ordem_pauta, usuario_relator_id, id) FROM stdin;
-550e8400-e29b-41d4-a716-446655440088	a336dc4d-7aa8-45f8-ac57-1d823f5160e3	1	\N	2a6030eb-5bf3-487f-bad1-9c4daa5b0815
+550e8400-e29b-41d4-a716-446655440088	55555555-5555-5555-5555-555555555555	1	\N	2a6030eb-5bf3-487f-bad1-9c4daa5b0815
 \.
 
 

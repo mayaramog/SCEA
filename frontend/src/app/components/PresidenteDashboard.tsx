@@ -256,47 +256,104 @@ export function PresidenteDashboard({ protocolos, onDeliberar }: PresidenteDashb
 
       {/* Modal de Deliberação */}
       {selectedProtocolo && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden">
-            <div className="p-8">
-              <h3 className="text-2xl font-bold mb-4">Deliberação: {selectedProtocolo.titulo}</h3>
-              <p className="text-slate-600 mb-6">Registro da decisão final em ata para a {selectedReuniao?.codigoReuniao}.</p>
-              
-              <div className="space-y-4">
-                <textarea
-                  id="justificativa-deliberacao"
-                  value={justificativaDeliberacao}
-                  onChange={(e) => { setJustificativaDeliberacao(e.target.value); setDeliberacaoError(''); }}
-                  className="w-full border rounded-xl p-4 h-32"
-                  placeholder="Fundamentação da decisão..."
-                />
-                {deliberacaoError && (
-                  <div className="text-sm text-red-600 font-medium">{deliberacaoError}</div>
-                )}
-                <div className="flex gap-4">
-                   <button 
-                    onClick={() => {
-                      const msg = justificativaDeliberacao.trim();
-                      if (!msg) { setDeliberacaoError('Informe a justificativa da deliberação.'); return; }
-                      onDeliberar(selectedProtocolo.id, msg, 'APROVADO', selectedReuniao!.id);
-                      setSelectedProtocolo(null);
-                      setJustificativaDeliberacao('');
-                      setDeliberacaoError('');
-                    }}
-                    className="flex-1 bg-green-600 text-white py-3 rounded-xl font-bold"
-                   >Aprovar</button>
-                   <button 
-                    onClick={() => {
-                      const msg = justificativaDeliberacao.trim();
-                      if (!msg) { setDeliberacaoError('Informe a justificativa da deliberação.'); return; }
-                      onDeliberar(selectedProtocolo.id, msg, 'REPROVADO', selectedReuniao!.id);
-                      setSelectedProtocolo(null);
-                      setJustificativaDeliberacao('');
-                      setDeliberacaoError('');
-                    }}
-                    className="flex-1 bg-red-600 text-white py-3 rounded-xl font-bold"
-                   >Reprovar</button>
-                </div>
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl my-8 overflow-hidden">
+            <div className="bg-slate-50 border-b px-8 py-4 flex justify-between items-center">
+                <h3 className="text-xl font-bold text-slate-900">Deliberação: {selectedProtocolo.titulo}</h3>
+                <button onClick={() => setSelectedProtocolo(null)} className="text-slate-400 hover:text-slate-600 font-bold">X</button>
+            </div>
+            
+            <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Informações do Protocolo */}
+              <div className="space-y-6">
+                <section>
+                    <h4 className="text-sm font-bold text-blue-600 uppercase tracking-wider mb-2">Dados do Projeto</h4>
+                    <div className="bg-slate-50 rounded-xl p-4 space-y-3">
+                        <p className="text-sm"><span className="font-bold">Pesquisador:</span> {selectedProtocolo.docenteNome}</p>
+                        <p className="text-sm"><span className="font-bold">Período:</span> {new Date(selectedProtocolo.dataInicio).toLocaleDateString()} a {new Date(selectedProtocolo.dataTermino).toLocaleDateString()}</p>
+                        <p className="text-sm font-bold mt-2">Justificativa:</p>
+                        <p className="text-sm text-slate-600 italic">"{selectedProtocolo.justificativa}"</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h4 className="text-sm font-bold text-blue-600 uppercase tracking-wider mb-2">Alocação de Animais</h4>
+                    <div className="space-y-2">
+                        {selectedProtocolo.alocacoes.map((a, i) => (
+                            <div key={i} className="flex justify-between items-center p-3 bg-white border rounded-lg text-sm">
+                                <span>{a.especie}</span>
+                                <span className="font-bold">{a.quantidade} un.</span>
+                                <span className="text-slate-500 text-xs">{a.bioterio}</span>
+                            </div>
+                        ))}
+                    </div>
+                </section>
+              </div>
+
+              {/* Pareceres dos Relatores */}
+              <div className="space-y-6">
+                <section>
+                    <h4 className="text-sm font-bold text-orange-600 uppercase tracking-wider mb-2">Pareceres Técnicos</h4>
+                    <div className="space-y-4">
+                        {selectedProtocolo.designacoesParecer.filter(d => d.parecer).length === 0 && (
+                            <p className="text-sm text-slate-400 italic">Nenhum parecer técnico registrado ainda.</p>
+                        )}
+                        {selectedProtocolo.designacoesParecer.filter(d => d.parecer).map((d, i) => (
+                            <div key={i} className="border border-orange-100 bg-orange-50/30 rounded-xl p-4">
+                                <div className="flex justify-between items-start mb-2">
+                                    <span className="text-xs font-bold text-orange-800">RELATOR {i + 1}</span>
+                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${
+                                        d.parecer.recomendacao === 'uso_recomendado' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                                    }`}>
+                                        {d.parecer.recomendacao === 'uso_recomendado' ? 'RECOMENDADO' : 'NÃO RECOMENDADO'}
+                                    </span>
+                                </div>
+                                <div className="space-y-2">
+                                    <p className="text-xs"><span className="font-bold">Resumo:</span> {d.parecer.resumoTecnico}</p>
+                                    <p className="text-xs"><span className="font-bold">Ética:</span> {d.parecer.consideracoesEticas}</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </section>
+
+                <section className="pt-4 border-t">
+                    <h4 className="text-sm font-bold text-slate-900 mb-2">Decisão de Plenário</h4>
+                    <textarea
+                        id="justificativa-deliberacao"
+                        value={justificativaDeliberacao}
+                        onChange={(e) => { setJustificativaDeliberacao(e.target.value); setDeliberacaoError(''); }}
+                        className="w-full border rounded-xl p-4 h-24 text-sm"
+                        placeholder="Registro da decisão em ata..."
+                    />
+                    {deliberacaoError && (
+                        <div className="text-xs text-red-600 font-medium mt-1">{deliberacaoError}</div>
+                    )}
+                    <div className="flex gap-4 mt-4">
+                        <button 
+                            onClick={() => {
+                            const msg = justificativaDeliberacao.trim();
+                            if (!msg) { setDeliberacaoError('Informe a justificativa da deliberação.'); return; }
+                            onDeliberar(selectedProtocolo.id, msg, 'APROVADO', selectedReuniao!.id);
+                            setSelectedProtocolo(null);
+                            setJustificativaDeliberacao('');
+                            setDeliberacaoError('');
+                            }}
+                            className="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-bold shadow-lg transition-all"
+                        >Aprovar Uso</button>
+                        <button 
+                            onClick={() => {
+                            const msg = justificativaDeliberacao.trim();
+                            if (!msg) { setDeliberacaoError('Informe a justificativa da deliberação.'); return; }
+                            onDeliberar(selectedProtocolo.id, msg, 'REPROVADO', selectedReuniao!.id);
+                            setSelectedProtocolo(null);
+                            setJustificativaDeliberacao('');
+                            setDeliberacaoError('');
+                            }}
+                            className="flex-1 bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-bold shadow-lg transition-all"
+                        >Reprovar Uso</button>
+                    </div>
+                </section>
               </div>
             </div>
           </div>

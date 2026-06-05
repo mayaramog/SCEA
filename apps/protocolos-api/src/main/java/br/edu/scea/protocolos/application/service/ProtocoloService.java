@@ -16,7 +16,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -78,7 +79,8 @@ public class ProtocoloService {
         calendarioService.validarDiaUtil(request.dataTerminoPlanejada(), "Término do experimento");
 
         UUID usuarioId = getUsuarioLogadoId();
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        // O principal geralmente contém o e-mail do usuário no Spring Security
+        String emailUsuario = SecurityContextHolder.getContext().getAuthentication().getName();
         
         String codigo = "P-" + LocalDate.now().getYear() + "-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
 
@@ -95,10 +97,10 @@ public class ProtocoloService {
         entity.setDataInicioPlanejada(request.dataInicioPlanejada());
         entity.setDataTerminoPlanejada(request.dataTerminoPlanejada());
         entity.setQuantidadeAnimaisAprovada(0);
-        entity.setCriadoEm(OffsetDateTime.now());
-        entity.setAtualizadoEm(OffsetDateTime.now());
+        entity.setCriadoEm(LocalDateTime.now());
+        entity.setAtualizadoEm(LocalDateTime.now());
         entity.setIdUsuarioSubmetedor(usuarioId);
-        entity.setNomePesquisadorResponsavel(email);
+        entity.setNomePesquisadorResponsavel(emailUsuario); // Armazenando o e-mail aqui para garantir
 
         entity.setAlocacoes(request.alocacoes().stream().map(dto -> {
             AlocacaoBiologicaEntity aloc = new AlocacaoBiologicaEntity();
@@ -110,7 +112,7 @@ public class ProtocoloService {
             aloc.setQuantidadePlanejada(dto.quantidadePlanejada());
             aloc.setJustificativa(dto.justificativa());
             aloc.setSexo(dto.sexo());
-            aloc.setCriadoEm(OffsetDateTime.now());
+            aloc.setCriadoEm(LocalDateTime.now());
             return aloc;
         }).collect(Collectors.toList()));
 
@@ -129,7 +131,7 @@ public class ProtocoloService {
         designacao.setProtocolo(protocolo);
         designacao.setUsuarioPareceristaId(request.usuarioPareceristaId());
         designacao.setAtribuidoPorUsuarioId(usuarioLogadoId);
-        designacao.setAtribuidoEm(OffsetDateTime.now());
+        designacao.setAtribuidoEm(LocalDateTime.now());
         designacao.setPrazoEm(request.prazoEm());
         designacao.setEstadoDesignacao("pendente");
 
@@ -157,7 +159,7 @@ public class ProtocoloService {
         parecer.setRecomendacao(request.recomendacao().getCodigo());
         parecer.setResumoTecnico(request.resumoTecnico());
         parecer.setConsideracoesEticas(request.consideracoesEticas());
-        parecer.setSubmetidoEm(OffsetDateTime.now());
+        parecer.setSubmetidoEm(LocalDateTime.now());
 
         designacao.setEstadoDesignacao("concluido");
         protocolo.setEstado(EstadoProtocolo.PENDENCIA_SOLICITADA); 
@@ -180,9 +182,9 @@ public class ProtocoloService {
         decisao.setTipoDecisao(request.novoEstado().getCodigo());
         decisao.setFundamentacao(request.fundamentacao());
         decisao.setDecididoPorUsuarioId(usuarioLogadoId);
-        decisao.setDecididoEm(OffsetDateTime.now());
+        decisao.setDecididoEm(LocalDateTime.now());
         decisao.setValidoAte(request.validoAte());
-        decisao.setCriadoEm(OffsetDateTime.now());
+        decisao.setCriadoEm(LocalDateTime.now());
 
         protocolo.setEstado(request.novoEstado());
         if (request.novoEstado() == EstadoProtocolo.APROVADO) {
@@ -200,6 +202,13 @@ public class ProtocoloService {
 
     private void publicarEventoAprovacao(ProtocoloEntity p, String justificativa) {
         try {
+            // Garantir que temos um e-mail válido para não quebrar o Worker
+            String emailDestino = p.getNomePesquisadorResponsavel();
+            if (emailDestino == null || !emailDestino.contains("@")) {
+                System.out.println("WARN: E-mail do pesquisador inválido (" + emailDestino + "). Usando fallback secretaria.");
+                emailDestino = "secretariascea@gmail.com";
+            }
+
             ProtocolApprovedV1 event = new ProtocolApprovedV1(
                 UUID.randomUUID(),
                 Instant.now(),
@@ -207,6 +216,7 @@ public class ProtocoloService {
                 UUID.randomUUID().toString(),
                 "protocolos-api",
                 p.getId(),
+                emailDestino,
                 justificativa,
                 p.getDataInicioPlanejada(),
                 p.getDataTerminoPlanejada()
