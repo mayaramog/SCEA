@@ -221,6 +221,7 @@ public class ProtocoloService {
         ProtocoloEntity protocolo = protocoloRepository.findById(protocoloId)
                 .orElseThrow(() -> new RuntimeException("Protocolo não encontrado"));
 
+
         UUID usuarioLogadoId = getUsuarioLogadoId();
 
         ProtocoloDesignacaoParecerEntity designacao = new ProtocoloDesignacaoParecerEntity();
@@ -236,11 +237,14 @@ public class ProtocoloService {
         protocolo.getDesignacoesParecer().add(designacao);
         protocoloRepository.save(protocolo);
 
+        String emailParecerista = protocoloRepository.findEmailByUsuarioId(request.usuarioPareceristaId())
+                .orElse("secretariascea@gmail.com");
+
         try {
             ReviewerAssignedV1 event = new ReviewerAssignedV1(
                 UUID.randomUUID(), Instant.now(), protocolo.getId(),
                 protocolo.getCodigoProtocolo(), protocolo.getTitulo(),
-                "parecerista@scea.edu.br", request.prazoEm()
+                emailParecerista, request.prazoEm()
             );
             rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE_NAME, RabbitMQConfig.ROUTING_KEY_DESIGNADO, event);
         } catch (Exception e) {
