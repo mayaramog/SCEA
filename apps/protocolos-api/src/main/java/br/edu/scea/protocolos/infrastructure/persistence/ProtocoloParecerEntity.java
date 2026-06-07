@@ -1,7 +1,7 @@
 package br.edu.scea.protocolos.infrastructure.persistence;
 
 import jakarta.persistence.*;
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -25,7 +25,7 @@ public class ProtocoloParecerEntity {
     private String consideracoesEticas;
 
     @Column(name = "submetido_em")
-    private OffsetDateTime submetidoEm;
+    private LocalDateTime submetidoEm;
 
     public ProtocoloParecerEntity() {}
 
@@ -39,6 +39,6 @@ public class ProtocoloParecerEntity {
     public void setResumoTecnico(String resumoTecnico) { this.resumoTecnico = resumoTecnico; }
     public String getConsideracoesEticas() { return consideracoesEticas; }
     public void setConsideracoesEticas(String consideracoesEticas) { this.consideracoesEticas = consideracoesEticas; }
-    public OffsetDateTime getSubmetidoEm() { return submetidoEm; }
-    public void setSubmetidoEm(OffsetDateTime submetidoEm) { this.submetidoEm = submetidoEm; }
+    public LocalDateTime getSubmetidoEm() { return submetidoEm; }
+    public void setSubmetidoEm(LocalDateTime submetidoEm) { this.submetidoEm = submetidoEm; }
 }

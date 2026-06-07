@@ -6,6 +6,19 @@ spring:
     port: 5672
     username: guest
     password: guest
+  mail:
+    host: ${SMTP_HOST:smtp.gmail.com}
+    port: ${SMTP_PORT:587}
+    username: ${SMTP_USERNAME:secretariascea@gmail.com}
+    password: ${SMTP_PASSWORD:akdkwimwodyrlgte}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          timeout: 5000
+          connectiontimeout: 5000
 
 server:
   port: 8086

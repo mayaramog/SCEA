@@ -37,6 +37,31 @@ public class ProtocoloController {
         return ResponseEntity.ok(id);
     }
 
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('DOCENTE')")
+    @Operation(summary = "Atualizar um protocolo existente (Edição)")
+    public ResponseEntity<Void> atualizar(@PathVariable("id") UUID id, @RequestBody @Valid SubmissaoProtocoloRequest request) {
+        ProtocoloEntity protocolo = protocoloRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Protocolo não encontrado"));
+        
+        // Regra simples: só edita se não foi aprovado/reprovado
+        if (protocolo.getEstado() == br.edu.scea.shared.enums.EstadoProtocolo.APROVADO || 
+            protocolo.getEstado() == br.edu.scea.shared.enums.EstadoProtocolo.REPROVADO) {
+            throw new IllegalStateException("Protocolos finalizados não podem ser editados.");
+        }
+
+        protocolo.setTitulo(request.titulo());
+        protocolo.setObjetivo(request.objetivo());
+        protocolo.setResumo(request.resumoPortugues());
+        protocolo.setJustificativa(request.justificativa());
+        protocolo.setDataInicioPlanejada(request.dataInicioPlanejada());
+        protocolo.setDataTerminoPlanejada(request.dataTerminoPlanejada());
+        protocolo.setAtualizadoEm(java.time.LocalDateTime.now());
+        
+        protocoloRepository.save(protocolo);
+        return ResponseEntity.ok().build();
+    }
+
     @GetMapping
     @Operation(summary = "Listar todos os protocolos")
     public ResponseEntity<List<ProtocoloEntity>> listar() {
@@ -82,13 +107,27 @@ public class ProtocoloController {
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping("/{id}/emenda")
+    @PreAuthorize("hasRole('DOCENTE')")
+    @Operation(summary = "Criar uma emenda baseada em um protocolo aprovado (RF07)")
+    public ResponseEntity<UUID> criarEmenda(@PathVariable("id") UUID id) {
+        UUID novaId = protocoloService.criarEmenda(id);
+        return ResponseEntity.ok(novaId);
+    }
+
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('DOCENTE')")
     @Operation(summary = "Arquivar (soft-delete) um protocolo")
     public ResponseEntity<Void> arquivar(@PathVariable("id") UUID id) {
-        ProtocoloEntity protocolo = protocoloRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Protocolo não encontrado"));
-        protocolo.setEstado(br.edu.scea.shared.enums.EstadoProtocolo.ARQUIVADO);
-        protocoloRepository.save(protocolo);
+        protocoloService.arquivar(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{id}/desarquivar")
+    @PreAuthorize("hasRole('DOCENTE')")
+    @Operation(summary = "Desarquivar um protocolo e voltar para análise")
+    public ResponseEntity<Void> desarquivar(@PathVariable("id") UUID id) {
+        protocoloService.desarquivar(id);
         return ResponseEntity.ok().build();
     }
 

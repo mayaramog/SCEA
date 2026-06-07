@@ -26,7 +26,8 @@ export type EstadoProtocolo =
   | 'aguardando_parecer'
   | 'aguardando_deliberacao'
   | 'uso_aprovado'
-  | 'uso_reprovado';
+  | 'uso_reprovado'
+  | 'arquivado';
 
 export interface AlocacaoAnimal {
   id: string;
@@ -35,6 +36,9 @@ export interface AlocacaoAnimal {
   quantidade: number;
   bioterio: string;
   bioterioId: string; // UUID from backend
+  justificativa?: string;
+  nomeLinhagem?: string;
+  sexo?: string;
 }
 
 export interface Protocolo {
@@ -47,10 +51,12 @@ export interface Protocolo {
   resumoEn: string;
   dataInicio: string;
   dataTermino: string;
+  objetivo?: string;
   estado: EstadoProtocolo;
   alocacoes: AlocacaoAnimal[];
   designacoesParecer: any[];
   dataCriacao: string;
+  ativo: boolean;
 }
 
 export interface Reuniao {
@@ -69,6 +75,7 @@ export default function App() {
   const [showProtocoloWizard, setShowProtocoloWizard] = useState(false);
   const [protocolos, setProtocolos] = useState<Protocolo[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedProtocoloForEdit, setSelectedProtocoloForEdit] = useState<Protocolo | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem('scea_token');
@@ -90,6 +97,7 @@ export default function App() {
         api.fetchProtocolos().then(setProtocolos);
     }
   }, [user, activeRole]);
+
   const handleLogin = (loggedUser: User) => {
     setUser(loggedUser);
     setActiveRole(loggedUser.role);
@@ -103,18 +111,48 @@ export default function App() {
   };
 
   const handleNovoProtocolo = () => {
+    setSelectedProtocoloForEdit(null);
+    setShowProtocoloWizard(true);
+  };
+
+  const handleEditProtocolo = async (p: Protocolo) => {
+    // Buscar detalhes completos (como objetivo) que podem estar faltando no fetch inicial
+    try {
+        const resp = await fetch(`http://localhost:8080/protocolos/${p.id}`, {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('scea_token')}` }
+        });
+        if (resp.ok) {
+            const fullP = await resp.json();
+            setSelectedProtocoloForEdit({
+                ...p,
+                objetivo: fullP.objetivo,
+                resumoPt: fullP.resumo,
+                resumoEn: fullP.resumo
+            });
+        } else {
+            setSelectedProtocoloForEdit(p);
+        }
+    } catch {
+        setSelectedProtocoloForEdit(p);
+    }
     setShowProtocoloWizard(true);
   };
 
   const handleCancelarProtocolo = () => {
     setShowProtocoloWizard(false);
+    setSelectedProtocoloForEdit(null);
   };
 
-  const handleSubmitProtocolo = async (protocolo: any) => {
+  const handleSubmitProtocolo = async (data: any) => {
     try {
-      const criado = await api.createProtocolo(protocolo);
-      setProtocolos(prev => [...prev, criado]);
+      if (selectedProtocoloForEdit) {
+          await api.updateProtocolo(selectedProtocoloForEdit.id, data);
+      } else {
+          await api.createProtocolo(data);
+      }
+      await api.fetchProtocolos().then(setProtocolos);
       setShowProtocoloWizard(false);
+      setSelectedProtocoloForEdit(null);
     } catch (e: any) {
       alert(e.message);
     }
@@ -134,7 +172,7 @@ export default function App() {
         await api.registrarParecer(protocoloId, {
             resumoTecnico,
             consideracoesEticas,
-            recomendacao: decisao // Keeping lowercase as expected by @JsonValue
+            recomendacao: decisao
         });
         await api.fetchProtocolos().then(setProtocolos);
     } catch (e: any) {
@@ -175,6 +213,7 @@ export default function App() {
             onRoleChange={setActiveRole} 
         />
         <ProtocoloWizard
+          initialData={selectedProtocoloForEdit}
           onSubmit={handleSubmitProtocolo}
           onCancel={handleCancelarProtocolo}
         />
@@ -192,34 +231,14 @@ export default function App() {
       />
 
       <main className="container mx-auto px-4 py-8 max-w-7xl">
-        {/* Role Selector Tabs for multi-role users */}
-        {user.roles.length > 1 && (
-            <div className="flex flex-wrap gap-2 mb-6 bg-white p-1 rounded-xl shadow-sm border border-slate-200 w-fit">
-                {user.roles.map(r => {
-                    const rCode = r.replace('ROLE_', '').toLowerCase() as UserRole;
-                    // Filter allowed switchable dashboard roles
-                    if (!['docente', 'secretaria', 'presidente', 'administrador', 'parecerista'].includes(rCode)) return null;
-
-                    return (
-                        <button
-                            key={r}
-                            onClick={() => setActiveRole(rCode)}
-                            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
-                                activeRole === rCode ? 'bg-blue-600 text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'
-                            }`}
-                        >
-                            Ver como {rCode.charAt(0).toUpperCase() + rCode.slice(1)}
-                        </button>
-                    );
-                })}
-            </div>
-        )}
 
         {activeRole === 'docente' && (
           <DocenteDashboard
             user={user}
             protocolos={protocolos}
             onNovoProtocolo={handleNovoProtocolo}
+            onEdit={handleEditProtocolo}
+            onRefresh={() => api.fetchProtocolos().then(setProtocolos)}
           />
         )}
 

@@ -10,6 +10,9 @@ public class RabbitMQConfig {
 
     public static final String EXCHANGE_NAME = "protocolos.v1";
     public static final String ROUTING_KEY_APROVADO = "protocolo.aprovado";
+    public static final String ROUTING_KEY_SUBMETIDO = "protocolo.submetido";
+    public static final String ROUTING_KEY_PARECER = "protocolo.parecer";
+    public static final String ROUTING_KEY_DESIGNADO = "protocolo.designado";
 
     @Bean
     public TopicExchange exchange() {

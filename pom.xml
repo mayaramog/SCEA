@@ -17,9 +17,10 @@
         <maven.compiler.source>25</maven.compiler.source>
         <maven.compiler.target>25</maven.compiler.target>
         <maven.compiler.release>25</maven.compiler.release>
-        <project.uild.sourceEncoding>UTF-8</project.uild.sourceEncoding>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <spring-boot.version>4.0.6</spring-boot.version>
         <spring-cloud.version>2025.1.1</spring-cloud.version>
+        <sonar.organization>gustavo-cortez</sonar.organization>
     </properties>
 <modules>
     <module>packages/shared-contracts</module>
@@ -53,6 +54,10 @@
                 <version>${spring-cloud.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.amqp</groupId>
+                <artifactId>spring-rabbit</artifactId>
             </dependency>
         </dependencies>
     </dependencyManagement>

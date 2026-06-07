@@ -95,7 +95,7 @@ export const api = {
   },
 
   async fetchProtocolos(): Promise<Protocolo[]> {
-    // Busca protocolos, espécies e biotérios em paralelo para "traduzir" os IDs em nomes
+    // Busca protocolos, espécies e biotérios em paralelo
     const [response, especies, bioterios] = await Promise.all([
       fetch(`${API_BASE_URL}/protocolos`, { headers: getHeaders() }),
       this.fetchEspecies(),
@@ -106,9 +106,7 @@ export const api = {
 
     const data = await response.json();
     
-    // For each protocol, we fetch its designações to ensure the dashboard has all info
     const fullProtocolos = await Promise.all(data.map(async (p: any) => {
-        // Optimization: only fetch if not present
         if (!p.designacoesParecer || p.designacoesParecer.length === 0) {
             const dResp = await fetch(`${API_BASE_URL}/protocolos/${p.id}/designacoes`, { headers: getHeaders() });
             if (dResp.ok) {
@@ -142,14 +140,15 @@ export const api = {
         };
       }),
       dataCriacao: p.criadoEm,
-      designacoesParecer: p.designacoesParecer || []
+      designacoesParecer: p.designacoesParecer || [],
+      ativo: p.ativo // MAP ATIVO FIELD
     }));
   },
 
   async createProtocolo(p: any): Promise<Protocolo> {
-    console.log('DEBUG: Submitting Protocol:', p);
-    const response = await fetch(`${API_BASE_URL}/protocolos`, {
-      method: 'POST',
+    const isEdit = !!p.id;
+    const response = await fetch(`${API_BASE_URL}/protocolos${isEdit ? '/' + p.id : ''}`, {
+      method: isEdit ? 'PUT' : 'POST',
       headers: getHeaders(),
       body: JSON.stringify({
         titulo: p.titulo,
@@ -164,7 +163,7 @@ export const api = {
           bioterioId: a.bioterioId,
           nomeLinhagem: a.nomeLinhagem || 'Wistar',
           quantidadePlanejada: a.quantidade,
-          justificativa: 'Necessário para experimento',
+          justificativa: a.justificativa || 'Necessário para experimento',
           sexo: a.sexo || 'macho'
         }))
       }),
@@ -172,12 +171,21 @@ export const api = {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.detail || 'Falha ao criar protocolo');
+      throw new Error(errorData.detail || `Falha ao ${isEdit ? 'atualizar' : 'criar'} protocolo`);
+    }
+
+    if (isEdit) {
+        const all = await this.fetchProtocolos();
+        return all.find(item => item.id === p.id)!;
     }
 
     const id = await response.json();
     const all = await this.fetchProtocolos();
     return all.find(item => item.id === id)!;
+  },
+
+  async updateProtocolo(id: string, p: any): Promise<void> {
+    await this.createProtocolo({ ...p, id });
   },
 
   async fetchEspecies(): Promise<Especie[]> {
@@ -214,7 +222,6 @@ export const api = {
     if (!resp.ok) return [];
     const data = await resp.json();
     
-    // For each meeting, we fetch details to ensure pauta is populated
     const fullReunioes = await Promise.all(data.map(async (r: any) => {
         const dResp = await fetch(`${API_BASE_URL}/comite/reunioes/${r.id}`, { headers: getHeaders() });
         if (dResp.ok) {
@@ -241,7 +248,7 @@ export const api = {
       body: JSON.stringify(r),
     });
     if (!resp.ok) throw new Error('Falha ao criar reunião');
-    return resp.json(); // Reverted to raw return
+    return resp.json();
   },
 
   async updateReuniaoEstado(id: string, novoEstado: string): Promise<void> {
@@ -329,12 +336,32 @@ export const api = {
       method: 'DELETE',
       headers: getHeaders(),
     });
-    if (!resp.ok) throw new Error('Falha ao arquivar protocolo');
+    if (!resp.ok) {
+        const data = await resp.json().catch(() => ({}));
+        throw new Error(data.detail || 'Falha ao arquivar protocolo');
+    }
+  },
+
+  async desarquivarProtocolo(id: string): Promise<void> {
+    const resp = await fetch(`${API_BASE_URL}/protocolos/${id}/desarquivar`, {
+      method: 'POST',
+      headers: getHeaders(),
+    });
+    if (!resp.ok) throw new Error('Falha ao desarquivar protocolo');
+  },
+
+  async criarEmenda(protocoloId: string): Promise<string> {
+    const resp = await fetch(`${API_BASE_URL}/protocolos/${protocoloId}/emenda`, {
+        method: 'POST',
+        headers: getHeaders(),
+    });
+    if (!resp.ok) throw new Error('Falha ao criar emenda');
+    return resp.json();
   },
 
   async designarParecerista(protocoloId: string, pareceristaId: string): Promise<void> {
     const prazo = new Date();
-    prazo.setDate(prazo.getDate() + 30); // Prazo padrão de 30 dias
+    prazo.setDate(prazo.getDate() + 30); 
 
     const resp = await fetch(`${API_BASE_URL}/protocolos/${protocoloId}/designar`, {
       method: 'POST',
@@ -362,6 +389,30 @@ export const api = {
     }
   },
 
+  // REPORT METHODS
+  async fetchRelatoriosPorProtocolo(protocoloId: string): Promise<any[]> {
+    const resp = await fetch(`${API_BASE_URL}/relatorios/protocolo/${protocoloId}`, { headers: getHeaders() });
+    return resp.ok ? resp.json() : [];
+  },
+
+  async downloadRelatorio(relatorioId: string, fileName: string): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/relatorios/${relatorioId}/download`, {
+        headers: getHeaders(),
+    });
+
+    if (!response.ok) throw new Error('Falha ao baixar relatório');
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  },
+
   mapEstado(backendEstado: string): any {
     const mapping: Record<string, string> = {
       'rascunho': 'aguardando_envio_parecer',
@@ -369,7 +420,8 @@ export const api = {
       'em_analise_ceua': 'aguardando_parecer',
       'pendencia_solicitada': 'aguardando_deliberacao',
       'aprovado': 'uso_aprovado',
-      'reprovado': 'uso_reprovado'
+      'reprovado': 'uso_reprovado',
+      'arquivado': 'arquivado'
     };
     return mapping[backendEstado] || 'aguardando_envio_parecer';
   },

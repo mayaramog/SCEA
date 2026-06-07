@@ -1,7 +1,9 @@
 package br.edu.scea.protocolos.infrastructure.persistence;
 
 import jakarta.persistence.*;
-import java.time.OffsetDateTime;
+
+import java.time.LocalDateTime;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -22,10 +24,10 @@ public class ProtocoloDesignacaoParecerEntity {
     private UUID atribuidoPorUsuarioId;
 
     @Column(name = "atribuido_em")
-    private OffsetDateTime atribuidoEm;
+    private LocalDateTime atribuidoEm;
 
     @Column(name = "prazo_em")
-    private OffsetDateTime prazoEm;
+    private LocalDateTime prazoEm;
 
     @Column(name = "estado_designacao")
     private String estadoDesignacao;
@@ -43,10 +45,10 @@ public class ProtocoloDesignacaoParecerEntity {
     public void setUsuarioPareceristaId(UUID usuarioPareceristaId) { this.usuarioPareceristaId = usuarioPareceristaId; }
     public UUID getAtribuidoPorUsuarioId() { return atribuidoPorUsuarioId; }
     public void setAtribuidoPorUsuarioId(UUID atribuidoPorUsuarioId) { this.atribuidoPorUsuarioId = atribuidoPorUsuarioId; }
-    public OffsetDateTime getAtribuidoEm() { return atribuidoEm; }
-    public void setAtribuidoEm(OffsetDateTime atribuidoEm) { this.atribuidoEm = atribuidoEm; }
-    public OffsetDateTime getPrazoEm() { return prazoEm; }
-    public void setPrazoEm(OffsetDateTime prazoEm) { this.prazoEm = prazoEm; }
+    public LocalDateTime getAtribuidoEm() { return atribuidoEm; }
+    public void setAtribuidoEm(LocalDateTime atribuidoEm) { this.atribuidoEm = atribuidoEm; }
+    public LocalDateTime getPrazoEm() { return prazoEm; }
+    public void setPrazoEm(LocalDateTime prazoEm) { this.prazoEm = prazoEm; }
     public String getEstadoDesignacao() { return estadoDesignacao; }
     public void setEstadoDesignacao(String estadoDesignacao) { this.estadoDesignacao = estadoDesignacao; }
     public ProtocoloParecerEntity getParecer() { return parecer; }

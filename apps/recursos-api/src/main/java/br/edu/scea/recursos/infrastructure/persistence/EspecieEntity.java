@@ -1,7 +1,7 @@
 package br.edu.scea.recursos.infrastructure.persistence;
 
 import jakarta.persistence.*;
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -20,7 +20,7 @@ public class EspecieEntity {
     private boolean ativo;
 
     @Column(name = "criado_em")
-    private OffsetDateTime criadoEm;
+    private LocalDateTime criadoEm;
 
     public EspecieEntity() {}
 
@@ -32,6 +32,6 @@ public class EspecieEntity {
     public void setNome(String nome) { this.nome = nome; }
     public boolean isAtivo() { return ativo; }
     public void setAtivo(boolean ativo) { this.ativo = ativo; }
-    public OffsetDateTime getCriadoEm() { return criadoEm; }
-    public void setCriadoEm(OffsetDateTime criadoEm) { this.criadoEm = criadoEm; }
+    public LocalDateTime getCriadoEm() { return criadoEm; }
+    public void setCriadoEm(LocalDateTime criadoEm) { this.criadoEm = criadoEm; }
 }

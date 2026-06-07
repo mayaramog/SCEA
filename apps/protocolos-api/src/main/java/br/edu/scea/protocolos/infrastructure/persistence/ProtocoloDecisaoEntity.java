@@ -1,7 +1,9 @@
 package br.edu.scea.protocolos.infrastructure.persistence;
 
 import jakarta.persistence.*;
-import java.time.OffsetDateTime;
+
+import java.time.LocalDateTime;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -28,13 +30,13 @@ public class ProtocoloDecisaoEntity {
     private UUID decididoPorUsuarioId;
 
     @Column(name = "decidido_em")
-    private OffsetDateTime decididoEm;
+    private LocalDateTime decididoEm;
 
     @Column(name = "valido_ate")
-    private OffsetDateTime validoAte;
+    private LocalDateTime validoAte;
 
     @Column(name = "criado_em")
-    private OffsetDateTime criadoEm;
+    private LocalDateTime criadoEm;
 
     public ProtocoloDecisaoEntity() {}
 
@@ -50,10 +52,10 @@ public class ProtocoloDecisaoEntity {
     public void setFundamentacao(String fundamentacao) { this.fundamentacao = fundamentacao; }
     public UUID getDecididoPorUsuarioId() { return decididoPorUsuarioId; }
     public void setDecididoPorUsuarioId(UUID decididoPorUsuarioId) { this.decididoPorUsuarioId = decididoPorUsuarioId; }
-    public OffsetDateTime getDecididoEm() { return decididoEm; }
-    public void setDecididoEm(OffsetDateTime decididoEm) { this.decididoEm = decididoEm; }
-    public OffsetDateTime getValidoAte() { return validoAte; }
-    public void setValidoAte(OffsetDateTime validoAte) { this.validoAte = validoAte; }
-    public OffsetDateTime getCriadoEm() { return criadoEm; }
-    public void setCriadoEm(OffsetDateTime criadoEm) { this.criadoEm = criadoEm; }
+    public LocalDateTime getDecididoEm() { return decididoEm; }
+    public void setDecididoEm(LocalDateTime decididoEm) { this.decididoEm = decididoEm; }
+    public LocalDateTime getValidoAte() { return validoAte; }
+    public void setValidoAte(LocalDateTime validoAte) { this.validoAte = validoAte; }
+    public LocalDateTime getCriadoEm() { return criadoEm; }
+    public void setCriadoEm(LocalDateTime criadoEm) { this.criadoEm = criadoEm; }
 }

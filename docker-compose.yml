@@ -120,6 +120,9 @@ services:
       DB_HOST: db
       EUREKA_HOST: eureka-server
       RABBIT_HOST: rabbitmq
+      STORAGE_PATH: /app/storage/reports/
+    volumes:
+      - scea-reports:/app/storage/reports
     depends_on:
       db:
         condition: service_healthy
@@ -136,6 +139,12 @@ services:
     environment:
       EUREKA_HOST: eureka-server
       RABBIT_HOST: rabbitmq
+      SMTP_HOST: smtp.gmail.com
+      SMTP_PORT: 587
+      SMTP_USERNAME: secretariascea@gmail.com
+      SMTP_PASSWORD: akdkwimwodyrlgte
+    volumes:
+      - scea-reports:/app/storage/reports
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -153,3 +162,6 @@ services:
       EUREKA_HOST: eureka-server
     depends_on:
       - eureka-server
+
+volumes:
+  scea-reports:
