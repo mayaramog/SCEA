@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { UserPlus, Shield, Users, Save, CheckCircle, XCircle, Beaker, MapPin, Plus, Power } from 'lucide-react';
 import api, { UsuarioBackend, Especie, Bioterio } from '../utils/api';
 
@@ -26,12 +26,12 @@ export function AdminDashboard() {
   const [tempRoles, setTempRoles] = useState<string[]>([]);
 
   const AVAILABLE_ROLES = [
-    { code: 'ROLE_ADMINISTRADOR', label: 'Administrador' },
-    { code: 'ROLE_PRESIDENTE', label: 'Presidente' },
-    { code: 'ROLE_SECRETARIA', label: 'Secretaria' },
-    { code: 'ROLE_DOCENTE', label: 'Docente' },
-    { code: 'ROLE_PARECERISTA', label: 'Parecerista' },
-    { code: 'ROLE_MEMBRO_CEUA', label: 'Membro CEUA' }
+    { code: 'ADMINISTRADOR', label: 'Administrador' },
+    { code: 'PRESIDENTE', label: 'Presidente' },
+    { code: 'SECRETARIA', label: 'Secretaria' },
+    { code: 'DOCENTE', label: 'Docente' },
+    { code: 'PARECERISTA', label: 'Parecerista' },
+    { code: 'MEMBRO_CEUA', label: 'Membro CEUA' }
   ];
 
   const loadAll = async () => {
@@ -107,7 +107,11 @@ export function AdminDashboard() {
 
   const handleOpenRoles = (u: UsuarioBackend) => {
     setEditingUser(u);
-    setTempRoles(u.papeis.map(p => typeof p === 'string' ? p.toUpperCase() : (p as any).codigo?.toUpperCase()));
+    // Removemos qualquer prefixo ROLE_ vindo do backend e convertemos para UPPERCASE para bater com AVAILABLE_ROLES
+    setTempRoles(u.papeis.map(p => {
+        const code = typeof p === 'string' ? p : (p as any).codigo || '';
+        return code.replace('ROLE_', '').toUpperCase();
+    }));
   };
 
   const handleSaveRoles = async () => {
@@ -120,8 +124,8 @@ export function AdminDashboard() {
   };
 
   const formatRole = (p: any): string => {
-    if (typeof p === 'string') return p.replace('ROLE_', '');
-    return (p.codigo || 'UNKNOWN').replace('ROLE_', '');
+    const code = typeof p === 'string' ? p : (p.codigo || 'UNKNOWN');
+    return code.replace('ROLE_', '').toUpperCase(); // Garantia extra de limpeza
   };
 
   return (
