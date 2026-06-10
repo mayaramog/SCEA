@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 const BASE_URL = 'http://localhost:5173';
-const TEST_EMAIL = 'test@scea.local';
+const TEST_EMAIL = 'gustavo.cortez@ufms.br';
 const TEST_PASS = '123';
 
 test.describe('Fluxo Completo SCEA E2E', () => {
@@ -23,7 +23,7 @@ test.describe('Fluxo Completo SCEA E2E', () => {
     }
 
     // 2. SUBMIT PROTOCOL (DOCENTE FLOW)
-    await page.click('button:has-text("Novo Protocolo")');
+    await page.getByRole('button', { name: 'Nova Submissão' }).click();
     
     // Step 1: Texts
     await page.fill('label:has-text("Título do Projeto") + input', 'Estudo Playwright E2E');

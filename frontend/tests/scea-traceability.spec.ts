@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { execSync } from 'child_process';
 
-const TEST_EMAIL = 'test@scea.local';
+const TEST_EMAIL = 'gustavo.cortez@ufms.br';
 const TEST_PASS = '123';
 
 test.describe('Validação da Matriz de Rastreabilidade SCEA (CT01-CT10)', () => {
@@ -10,7 +10,7 @@ test.describe('Validação da Matriz de Rastreabilidade SCEA (CT01-CT10)', () =>
   test('CT01: deve bloquear a submissão de protocolos para perfis não acadêmicos', async ({ page }) => {
     // Login as Secretaria
     await page.goto('/');
-    await page.fill('input[id="email"]', 'secretaria@scea.local');
+    await page.fill('input[id="email"]', 'secretariascea@gmail.com');
     await page.fill('input[id="senha"]', '123');
     await page.click('button[type="submit"]');
     
@@ -24,8 +24,8 @@ test.describe('Validação da Matriz de Rastreabilidade SCEA (CT01-CT10)', () =>
 
     // Secretary sees "Dashboard da Secretária" (or similar)
     await expect(page.getByText('Dashboard da Secretária')).toBeVisible();
-    // Academic "Novo Protocolo" should NOT be visible
-    await expect(page.getByText('Novo Protocolo')).not.toBeVisible();
+    // Academic submission action should NOT be visible
+    await expect(page.getByRole('button', { name: 'Nova Submissão' })).not.toBeVisible();
   });
 
   // CT02: Alocação cruzada de múltiplos biotérios
@@ -36,7 +36,7 @@ test.describe('Validação da Matriz de Rastreabilidade SCEA (CT01-CT10)', () =>
     await page.click('button[type="submit"]');
     
     await page.getByRole('banner').getByRole('button', { name: 'Ver como Docente' }).click();
-    await page.click('button:has-text("Novo Protocolo")');
+    await page.getByRole('button', { name: 'Nova Submissão' }).click();
     
     // Step 1 - Use valid long strings
     await page.fill('label:has-text("Título do Projeto") + input', 'CT02 Cross-Bioterio Test - Multiple Allocations');
@@ -77,7 +77,7 @@ test.describe('Validação da Matriz de Rastreabilidade SCEA (CT01-CT10)', () =>
     await page.click('button[type="submit"]');
     
     await page.getByRole('banner').getByRole('button', { name: 'Ver como Docente' }).click();
-    await page.click('button:has-text("Novo Protocolo")');
+    await page.getByRole('button', { name: 'Nova Submissão' }).click();
     
     await page.fill('label:has-text("Título do Projeto") + input', 'CT03 Date Contradiction Test');
     await page.fill('label:has-text("Objetivo") + textarea', 'Objetivo válido com mais de dez caracteres.');
@@ -101,7 +101,7 @@ test.describe('Validação da Matriz de Rastreabilidade SCEA (CT01-CT10)', () =>
     await page.fill('input[id="senha"]', TEST_PASS);
     await page.click('button[type="submit"]');
     await page.getByRole('banner').getByRole('button', { name: 'Ver como Docente' }).click();
-    await page.click('button:has-text("Novo Protocolo")');
+    await page.getByRole('button', { name: 'Nova Submissão' }).click();
     
     await page.fill('label:has-text("Título do Projeto") + input', 'CT04/05 Weekend/Holiday Test');
     await page.fill('label:has-text("Objetivo") + textarea', 'Objetivo válido com mais de dez caracteres.');
@@ -156,7 +156,7 @@ test.describe('Validação da Matriz de Rastreabilidade SCEA (CT01-CT10)', () =>
     await page.click('button[type="submit"]');
     await page.getByRole('banner').getByRole('button', { name: 'Ver como Docente' }).click();
     
-    await page.click('button:has-text("Novo Protocolo")');
+    await page.getByRole('button', { name: 'Nova Submissão' }).click();
     await page.fill('label:has-text("Título do Projeto") + input', TITULO);
     await page.fill('label:has-text("Objetivo") + textarea', 'Objetivo válido com mais de dez caracteres.');
     await page.fill('label:has-text("Justificativa Científica") + textarea', 'Justificativa válida com mais de dez caracteres.');
@@ -210,7 +210,7 @@ test.describe('Validação da Matriz de Rastreabilidade SCEA (CT01-CT10)', () =>
     await expect(page.getByRole('banner').getByRole('button', { name: 'Ver como Secretaria' })).toBeVisible();
     
     await page.getByRole('banner').getByRole('button', { name: 'Ver como Docente' }).click();
-    await expect(page.getByText('Minhas Submissões')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Protocolos Ativos' })).toBeVisible();
   });
 
   // CT10: Outbox and PDF (Integrity check)

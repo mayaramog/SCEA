@@ -1,7 +1,8 @@
 import { test, expect } from '@playwright/test';
 
-const TEST_EMAIL = 'test@scea.local';
+const TEST_EMAIL = 'gustavo.cortez@ufms.br';
 const TEST_PASS = '123';
+const TEST_USER_NAME = 'Gustavo Cortez';
 
 test.describe('Cobertura Abrangente de Requisitos SCEA', () => {
 
@@ -21,7 +22,7 @@ test.describe('Cobertura Abrangente de Requisitos SCEA', () => {
   });
 
   test('deve aplicar as regras de validação de data (sem finais de semana/feriados)', async ({ page }) => {
-    await page.click('button:has-text("Novo Protocolo")');
+    await page.getByRole('button', { name: 'Nova Submissão' }).click();
     
     // Fill step 1
     await page.fill('label:has-text("Título do Projeto") + input', 'Teste de Validação de Datas');
@@ -48,7 +49,7 @@ test.describe('Cobertura Abrangente de Requisitos SCEA', () => {
   });
 
   test('deve exigir pelo menos uma alocação de animais', async ({ page }) => {
-    await page.click('button:has-text("Novo Protocolo")');
+    await page.getByRole('button', { name: 'Nova Submissão' }).click();
     
     // Fill step 1
     await page.fill('label:has-text("Título do Projeto") + input', 'Teste de Alocação Vazia');
@@ -75,7 +76,7 @@ test.describe('Cobertura Abrangente de Requisitos SCEA', () => {
     const REUNIAO_CODE = `RC-${Date.now()}`;
 
     // --- 1. SUBMIT (DOCENTE) ---
-    await page.click('button:has-text("Novo Protocolo")');
+    await page.getByRole('button', { name: 'Nova Submissão' }).click();
     await page.fill('label:has-text("Título do Projeto") + input', TITULO);
     await page.fill('label:has-text("Objetivo") + textarea', 'Objetivo para o fluxo completo de teste E2E.');
     await page.fill('label:has-text("Justificativa Científica") + textarea', 'Justificativa para o fluxo completo de teste E2E.');
@@ -106,7 +107,7 @@ test.describe('Cobertura Abrangente de Requisitos SCEA', () => {
     const row = page.locator('tr').filter({ hasText: TITULO }).first();
     await row.getByRole('button', { name: 'Designar Parecerista' }).click();
     
-    await page.selectOption('select[id="parecerista-select"]', { label: 'Usuário de Teste (Full)' });
+    await page.getByLabel('Pareceristas Disponíveis').selectOption({ label: TEST_USER_NAME });
     await page.click('button:has-text("Confirmar")');
 
     // --- 3. REVIEW (PARECERISTA) ---
@@ -141,9 +142,7 @@ test.describe('Cobertura Abrangente de Requisitos SCEA', () => {
     // Attempt to create a fresh meeting
     await page.click('button:has-text("Nova Reunião")');
     await page.fill('#new-reuniao-codigo', REUNIAO_CODE);
-    // Be very careful with date input (use keyboard to be safe across locales)
-    await page.click('#new-reuniao-data');
-    await page.keyboard.type('150820261400');
+    await page.fill('#new-reuniao-data', '2026-08-15T14:00');
     await page.fill('#new-reuniao-local', 'Sala Virtual de Testes');
     await page.click('button:has-text("Criar Reunião")');
     
@@ -154,14 +153,14 @@ test.describe('Cobertura Abrangente de Requisitos SCEA', () => {
     }
 
     // Locate ANY usable meeting (Our new one OR fallback to ANY Agendada/Em Andamento)
-    let meetingCard = page.locator('div').filter({ hasText: REUNIAO_CODE }).first();
+    let meetingCard = page.locator('div.bg-white.rounded-xl').filter({ hasText: REUNIAO_CODE }).first();
     if (!await meetingCard.isVisible()) {
         console.log('FALLBACK: Using existing meeting');
-        meetingCard = page.locator('div').filter({ hasText: /agendada|em andamento/i }).first();
+        meetingCard = page.locator('div.bg-white.rounded-xl').filter({ hasText: /agendada|em andamento/i }).first();
     }
     
     await expect(meetingCard).toBeVisible({ timeout: 15000 });
-    await meetingCard.getByRole('button', { name: /Acessar/i }).click({ force: true });
+    await meetingCard.getByRole('button', { name: 'Acessar Reunião' }).click();
     
     // If it was agendada, we must start it
     const iniciarBtn = page.getByRole('button', { name: 'Iniciar Reunião' });
